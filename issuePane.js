@@ -12,7 +12,7 @@
 /* global confirm */
 
 var UI = require('solid-ui')
-var panes = require('../paneRegistry')
+var panes = require('pane-registry')
 
 const SET_MODIFIED_DATES = false
 
