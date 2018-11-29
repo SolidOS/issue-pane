@@ -391,7 +391,7 @@ module.exports = {
         return devs
       }
 
-      getPossibleAssignees.then(devs => {
+      getPossibleAssignees().then(devs => {
         if (devs.length) {
           devs.map(function (person) { kb.fetcher.lookUpThing(person) }) // best effort async for names etc
           var opts = { // 'mint': '** Add new person **',
