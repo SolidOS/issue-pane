@@ -11,8 +11,9 @@
 */
 /* global confirm */
 
-var UI = require('solid-ui')
-var panes = require('pane-registry')
+const UI = require('solid-ui')
+const panes = require('pane-registry')
+const ns = UI.ns
 
 const SET_MODIFIED_DATES = false
 
@@ -20,6 +21,8 @@ module.exports = {
   icon: UI.icons.iconBase + 'noun_97839.svg', // was: js/panes/issue/tbl-bug-22.png
 
   name: 'issue',
+
+  audience: [ns.solid('PowerUser')],
 
   // Does the subject deserve an issue pane?
   label: function (subject) {
