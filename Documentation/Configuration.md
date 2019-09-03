@@ -66,7 +66,6 @@ The RDFS Class system is used for the issue state.
 The simplest way is to just use the predefined class `wf:Task`.
 It is defined in the ontology to have two subclasses, `wf:Open` and `wf:Closed`.
 
-    # hmmmm
     :this wf:stateClass wf:Task;
        wf:initialState wf:Open .
 
@@ -79,6 +78,41 @@ The more complex way is to defined your own state classes.
   - For some, but not all, of your subclasses, define them to be a subclass of `wf:Open`.  These will be the open issues. By default, only open issues are displayed.
   - Optionally, define a `ui:backgroundColor` for each subclass to make them stand out from each other.
 
+### Example
+
+        :this wf:stateClass :FooIssue .
+        :FooIssue a s:Class; s:subClassOf wf:Task;
+            s:label "Request";
+            owl:disjointUnionOf (
+                :New :Discussing :Pending :Negotiating :Accepted :Urgent :ToBeDeclined
+                :Declined :Obsolete: Done ).
+
+        :New a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "new"; ui:sortOrder 90;
+            s:comment """Has not been looked at.
+            This is the initial state normally when an issue is created.""".
+        :Discussing a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "in discussion"; ui:sortOrder 80;
+            s:comment "Being discussed".
+        :Pending a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "pending others"; ui:sortOrder 75;
+            s:comment "Waiting for an external person's input.".
+        :Negotiating a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "negotiating"; ui:sortOrder 60;
+            s:comment "Being negotiated".
+        :Accepted a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "Accepted, in progress"; ui:sortOrder 50;
+            s:comment "Will go ahead. We are working on this".
+        :Urgent a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "URGENT"; ui:sortOrder 55;
+            s:comment "Needs urgent attention".
+        :ToBeDeclined a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "to be declined"; ui:sortOrder 40;
+            s:comment "To be declined".
+        :Declined a s:Class; s:subClassOf :FooIssue, wf:Closed; s:label "declined"; ui:sortOrder 30;
+            s:comment "Declined".
+        :Done a s:Class; s:subClassOf :FooIssue, wf:Closed; s:label "done"; ui:sortOrder 20;
+            s:comment "Completed.".
+        :Obsolete a s:Class; s:subClassOf :FooIssue, wf:Closed; s:label "obsolete/missed"; ui:sortOrder 10;
+            s:comment "Overtaken by time or events.".
+
+
+(Note that the classes must be explicitly subclasses of (indirectly) wf:Task
+as solid-ui/rdflib and maybe others are not smart enough to deduce that from the
+owl:disjointUnionOf.)
 
 ## Defining categories
 
@@ -105,7 +139,7 @@ There is a button on each issue to create sub-issues, and
 a list of sub-issues.  You can turn this on with a boolean flag:
 
     :this wf:allowSubIssues true .
-    
+
 ## What's in an issue?
 
 Any issue will have, anyway:
@@ -189,8 +223,10 @@ a python-based configurable issue tracker we were using before for the group. Ro
 ## Future
 
 Currently (2019-09) there is no user interface tooling for guiding the user through
-the task of creating a new tracker.  This would clearly be valuable! @@ link to isssue.
+the task of creating a new tracker.  This would clearly be valuable! @@ link to issue.
 Help would be great in making that.
+
+Other use
 
 The current method of storing all the issues in one file works for small projects
 but clearly doesn't scale with size or time.  A plan is to use a `issueURITemplate`
