@@ -17,7 +17,7 @@ need.  Other solid-compatible tracker tools may also be built to use the same da
 
 The classes and properties in this document at in the Workflow namespace.
 
-    @prefix wf: 'http://www.w3.org/2005/01/wf/flow#>.
+    @prefix wf: <http://www.w3.org/2005/01/wf/flow#>.
 
 You may find other namespaces useful, such as
 
@@ -52,7 +52,7 @@ a tracker object. So let's do that in this example.
         @prefix : <#>.    # Local identifiers use default namespace
         :this a wf:Tracker;
              dc:title "Issue Tracker for the Foo project" ;
-             wf:stateStore <state.ttl> .
+             wf:stateStore <state.ttl> ;
              wf:messageStore <chat.ttl> .
 
 
@@ -82,12 +82,12 @@ The more complex way is to defined your own state classes.
 
         :this wf:stateClass :FooIssue ;
             wf:initialState :New.
-            
+
         :FooIssue a s:Class; s:subClassOf wf:Task;
             s:label "Request";
             owl:disjointUnionOf (
                 :New :Discussing :Pending :Negotiating :Accepted :Urgent :ToBeDeclined
-                :Declined :Obsolete: Done ).
+                :Declined :Obsolete :Done ).
 
         :New a s:Class; s:subClassOf :FooIssue, wf:Open; s:label "new"; ui:sortOrder 90;
             s:comment """Has not been looked at.
