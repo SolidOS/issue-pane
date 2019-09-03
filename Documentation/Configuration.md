@@ -80,7 +80,9 @@ The more complex way is to defined your own state classes.
 
 ### Example
 
-        :this wf:stateClass :FooIssue .
+        :this wf:stateClass :FooIssue ;
+            wf:initialState :New.
+            
         :FooIssue a s:Class; s:subClassOf wf:Task;
             s:label "Request";
             owl:disjointUnionOf (

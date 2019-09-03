@@ -95,7 +95,9 @@ subclass to make them stand out from each other.</li>
 </ul>
 <h3>Example</h3>
 <pre>
-<code>    :this wf:stateClass :FooIssue .
+<code>    :this wf:stateClass :FooIssue ;
+        wf:initialState :New.
+
     :FooIssue a s:Class; s:subClassOf wf:Task;
         s:label "Request";
         owl:disjointUnionOf (
