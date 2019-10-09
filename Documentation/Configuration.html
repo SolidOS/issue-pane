@@ -1,38 +1,46 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta name="generator" content=
-"HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 16.1), see www.w3.org" />
-<link rel="stylesheet" href="github-markdown.css" type=
-"text/css" />
-<title></title>
-</head>
-<body class="markdown-body">
-<h1>Issue Tracker configuration</h1>
-<p>The Solid issue tracker system, <code>issue-pane</code>, is a
-very flexible system which can be configured for many different
-needs. Therefore, understanding the format of the configuration
-file is important, as currently, there is no User Interface support
-for a user to configure a new tracker herself.</p>
-<p>The words 'issue' and 'task' may be used interchangeably in this
-document and in the software. Note that you may end up using the
-tracker for things where you don't think of them as "issues" - they
-may be requests for hand-made craft items, To-Dos, meals to be
-organized, and so on.</p>
-<p>From the user's point of view, an issue tracker basically is a
-list of issues and a tool for editing the details of an issue.</p>
-<p>To make an instance of tracker on a solid pod, just create the
-main config file and go to the URI of the tracker in a browser, and
-the data bowser will run the code you need. Other solid-compatible
-tracker tools may also be built to use the same data.</p>
-<p>The classes and properties in this document at in the Workflow
-namespace.</p>
-<pre>
+  <head>
+    <meta
+      name="generator"
+      content="HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 16.1), see www.w3.org"
+    />
+    <link rel="stylesheet" href="github-markdown.css" type="text/css" />
+    <title></title>
+  </head>
+  <body class="markdown-body">
+    <h1>Issue Tracker configuration</h1>
+    <p>
+      The Solid issue tracker system, <code>issue-pane</code>, is a very
+      flexible system which can be configured for many different needs.
+      Therefore, understanding the format of the configuration file is
+      important, as currently, there is no User Interface support for a user to
+      configure a new tracker herself.
+    </p>
+    <p>
+      The words 'issue' and 'task' may be used interchangeably in this document
+      and in the software. Note that you may end up using the tracker for things
+      where you don't think of them as "issues" - they may be requests for
+      hand-made craft items, To-Dos, meals to be organized, and so on.
+    </p>
+    <p>
+      From the user's point of view, an issue tracker basically is a list of
+      issues and a tool for editing the details of an issue.
+    </p>
+    <p>
+      To make an instance of tracker on a solid pod, just create the main config
+      file and go to the URI of the tracker in a browser, and the data bowser
+      will run the code you need. Other solid-compatible tracker tools may also
+      be built to use the same data.
+    </p>
+    <p>
+      The classes and properties in this document at in the Workflow namespace.
+    </p>
+    <pre>
 <code>@prefix wf: 'http://www.w3.org/2005/01/wf/flow#&gt;.</code>
 </pre>
-<p>You may find other namespaces useful, such as</p>
-<pre>
+    <p>You may find other namespaces useful, such as</p>
+    <pre>
 <code>@prefix cal: &lt;http://www.w3.org/2002/12/cal/ical#&gt;.
 @prefix link: &lt;http://www.w3.org/2007/ont/link#&gt;.
 @prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;.
@@ -44,57 +52,68 @@ namespace.</p>
 @prefix dc: &lt;http://purl.org/dc/elements/1.1/&gt;.
 @prefix vcard: &lt;http://www.w3.org/2006/vcard/ns#&gt;.</code>
 </pre>
-<p>Typically, (and currently) a tracker has one config file, say
-<code>index.ttl</code> one file to actually store the state of all
-the issues, say <code>state.ttl</code>, and optionally one file to
-store chat messages, say <code>chat.ttl</code> if you don't want
-them to be in the same file as the issues themselves.</p>
-<p>You should <em>create empty files</em> for the state and chat
-file. Then create the tracker config file and you are done.</p>
-<p>Your config file will start by defining the Tracker object
-itself.</p>
-<p>A common way is to create a new Solid folder for the tracker,
-and in that make the config file <code>index.ttl</code> and the
-tracker object <code>index.ttl#this</code> . Then the solid file
-bowser will display the folder as a tracker object. So let's do
-that in this example.</p>
-<pre>
+    <p>
+      Typically, (and currently) a tracker has one config file, say
+      <code>index.ttl</code> one file to actually store the state of all the
+      issues, say <code>state.ttl</code>, and optionally one file to store chat
+      messages, say <code>chat.ttl</code> if you don't want them to be in the
+      same file as the issues themselves.
+    </p>
+    <p>
+      You should <em>create empty files</em> for the state and chat file. Then
+      create the tracker config file and you are done.
+    </p>
+    <p>Your config file will start by defining the Tracker object itself.</p>
+    <p>
+      A common way is to create a new Solid folder for the tracker, and in that
+      make the config file <code>index.ttl</code> and the tracker object
+      <code>index.ttl#this</code> . Then the solid file bowser will display the
+      folder as a tracker object. So let's do that in this example.
+    </p>
+    <pre>
 <code>    @prefix : &lt;#&gt;.    # Local identifiers use default namespace
     :this a wf:Tracker;
          dc:title "Issue Tracker for the Foo project" ;
          wf:stateStore &lt;state.ttl&gt; .
          wf:messageStore &lt;chat.ttl&gt; .</code>
 </pre>
-<h2>Defining possible issue states</h2>
-<p>An issue is always in one of a number of states, like Open or
-Closed, for a simple system, for a more complex one, say, New,
-Assigned, InProgress, Pending External Feedback, Rejected, Done.
-Moving an issue from one state to another is the most fundamental
-thing users do. The RDFS Class system is used for the issue
-state.</p>
-<p>The simplest way is to just use the predefined class
-<code>wf:Task</code>. It is defined in the ontology to have two
-subclasses, <code>wf:Open</code> and <code>wf:Closed</code>.</p>
-<pre>
+    <h2>Defining possible issue states</h2>
+    <p>
+      An issue is always in one of a number of states, like Open or Closed, for
+      a simple system, for a more complex one, say, New, Assigned, InProgress,
+      Pending External Feedback, Rejected, Done. Moving an issue from one state
+      to another is the most fundamental thing users do. The RDFS Class system
+      is used for the issue state.
+    </p>
+    <p>
+      The simplest way is to just use the predefined class <code>wf:Task</code>.
+      It is defined in the ontology to have two subclasses,
+      <code>wf:Open</code> and <code>wf:Closed</code>.
+    </p>
+    <pre>
 <code>:this wf:stateClass wf:Task;
    wf:initialState wf:Open .</code>
 </pre>
-<p>The more complex way is to defined your own state classes.</p>
-<ul>
-<li>Define a superclass, say <code>FooIssue</code></li>
-<li>Define each subclass as being subclasses of
-<code>FooIssue</code></li>
-<li>Declare the superclass to be a disjoint union of the
-subclasses. That means that a task can only be in one at a
-time.</li>
-<li>For some, but not all, of your subclasses, define them to be a
-subclass of <code>wf:Open</code>. These will be the open issues. By
-default, only open issues are displayed.</li>
-<li>Optionally, define a <code>ui:backgroundColor</code> for each
-subclass to make them stand out from each other.</li>
-</ul>
-<h3>Example</h3>
-<pre>
+    <p>The more complex way is to defined your own state classes.</p>
+    <ul>
+      <li>Define a superclass, say <code>FooIssue</code></li>
+      <li>Define each subclass as being subclasses of <code>FooIssue</code></li>
+      <li>
+        Declare the superclass to be a disjoint union of the subclasses. That
+        means that a task can only be in one at a time.
+      </li>
+      <li>
+        For some, but not all, of your subclasses, define them to be a subclass
+        of <code>wf:Open</code>. These will be the open issues. By default, only
+        open issues are displayed.
+      </li>
+      <li>
+        Optionally, define a <code>ui:backgroundColor</code> for each subclass
+        to make them stand out from each other.
+      </li>
+    </ul>
+    <h3>Example</h3>
+    <pre>
 <code>    :this wf:stateClass :FooIssue ;
         wf:initialState :New.
 
@@ -126,82 +145,102 @@ subclass to make them stand out from each other.</li>
     :Obsolete a s:Class; s:subClassOf :FooIssue, wf:Closed; s:label "obsolete/missed"; ui:sortOrder 10;
         s:comment "Overtaken by time or events.".</code>
 </pre>
-<p>(Note that the classes must be explicitly subclasses of
-(indirectly) wf:Task as solid-ui/rdflib and maybe others are not
-smart enough to deduce that from the owl:disjointUnionOf.)</p>
-<h2>Defining categories</h2>
-<p>Depending on what sort of application the tracker is being used
-for, it may be useful to categorize issues along one or more axes.
-For example, they could be classified by the sort of issue, between
-Urgent Fix, Bug, Enhancement Request, Blue Sky Idea. The could be
-classified by domain, such as Sales, Marketing, or Engineering, or
-product line, and so on.</p>
-<p>A category is defined as a set of disjoint classes used in the
-issue state above, but then specified using the
-<code>issueCategory</code> property.</p>
-<pre>
+    <p>
+      (Note that the classes must be explicitly subclasses of (indirectly)
+      wf:Task as solid-ui/rdflib and maybe others are not smart enough to deduce
+      that from the owl:disjointUnionOf.)
+    </p>
+    <h2>Defining categories</h2>
+    <p>
+      Depending on what sort of application the tracker is being used for, it
+      may be useful to categorize issues along one or more axes. For example,
+      they could be classified by the sort of issue, between Urgent Fix, Bug,
+      Enhancement Request, Blue Sky Idea. The could be classified by domain,
+      such as Sales, Marketing, or Engineering, or product line, and so on.
+    </p>
+    <p>
+      A category is defined as a set of disjoint classes used in the issue state
+      above, but then specified using the <code>issueCategory</code> property.
+    </p>
+    <pre>
 <code>  :this wf:issueCategory :BugType, :Division .</code>
 </pre>
-<p>This will generate two columns, one for Bug Type, and one for
-Division, in the issue list.</p>
-<h2>Nested issues</h2>
-<p>You can run the tracker in a mode in which issues can have
-sub-issues. There is a button on each issue to create sub-issues,
-and a list of sub-issues. You can turn this on with a boolean
-flag:</p>
-<pre>
+    <p>
+      This will generate two columns, one for Bug Type, and one for Division, in
+      the issue list.
+    </p>
+    <h2>Nested issues</h2>
+    <p>
+      You can run the tracker in a mode in which issues can have sub-issues.
+      There is a button on each issue to create sub-issues, and a list of
+      sub-issues. You can turn this on with a boolean flag:
+    </p>
+    <pre>
 <code>:this wf:allowSubIssues true .</code>
 </pre>
-<h2>What's in an issue?</h2>
-<p>Any issue will have, anyway:</p>
-<ul>
-<li>A title</li>
-<li>A text description</li>
-<li>Its creation date</li>
-<li>its state, like Open/Closed.</li>
-<li>a text status field about it</li>
-<li>A small chat thread</li>
-<li>a place to drag related things like web pages</li>
-</ul>
-<h3>Predicate List</h3>
-<p>You can also add to this in two ways. One is with an arbitrary
-list of other properties to be displayed in the table</p>
-<pre>
+    <h2>What's in an issue?</h2>
+    <p>Any issue will have, anyway:</p>
+    <ul>
+      <li>A title</li>
+      <li>A text description</li>
+      <li>Its creation date</li>
+      <li>its state, like Open/Closed.</li>
+      <li>a text status field about it</li>
+      <li>A small chat thread</li>
+      <li>a place to drag related things like web pages</li>
+    </ul>
+    <h3>Predicate List</h3>
+    <p>
+      You can also add to this in two ways. One is with an arbitrary list of
+      other properties to be displayed in the table
+    </p>
+    <pre>
 <code>  :this wf:propertyList ( dc:title  ex:location ) .</code>
 </pre>
-<h3>Extras entry form</h3>
-<p>The other is by defining a form to be added to the issue
-editor</p>
-<pre>
+    <h3>Extras entry form</h3>
+    <p>The other is by defining a form to be added to the issue editor</p>
+    <pre>
 <code>  :this wf:extrasEntryForm  :FooDetailsForm .</code>
 </pre>
-<p>See <a href=
-"https://solid.github.io/solid-ui/Documentation/forms-intro.html">Instructions
-for creating forms</a></p>
-<h2>Managing Assignees</h2>
-<p>Optionally, the tracker will let you assign tasks to people. (Or
-groups, organizations, etc, but typically people).</p>
-<p>To make this happen, you can define the set of people who can
-potentially be assigned in either or both of two ways:</p>
-<h3>Assignee project:</h3>
-<p>Mention in the config file that a DOAP project has the tracker
-as its bug tracker.</p>
-<pre>
+    <p>
+      See
+      <a href="https://solid.github.io/solid-ui/Documentation/forms-intro.html"
+        >Instructions for creating forms</a
+      >
+    </p>
+    <h2>Managing Assignees</h2>
+    <p>
+      Optionally, the tracker will let you assign tasks to people. (Or groups,
+      organizations, etc, but typically people).
+    </p>
+    <p>
+      To make this happen, you can define the set of people who can potentially
+      be assigned in either or both of two ways:
+    </p>
+    <h3>Assignee project:</h3>
+    <p>
+      Mention in the config file that a DOAP project has the tracker as its bug
+      tracker.
+    </p>
+    <pre>
 <code>      :FooProject doap:bug-database :this .</code>
 </pre>
-<p>In the project's rdf document (which may be the same as the
-tracker or may be different) give (at least) the developers and
-their names.</p>
-<pre>
+    <p>
+      In the project's rdf document (which may be the same as the tracker or may
+      be different) give (at least) the developers and their names.
+    </p>
+    <pre>
 <code>      :FooProject doap:developer  :Alice, :Bob, :Charlie .
       :Alice foaf:name "Alice Accacia".
       :Bob foaf:name "Bob Brown".
       :Charlie foaf:name "Robert Crimson".</code>
 </pre>
-<h3>Assignee group (new, untested)</h3>
-<p>You can create or link to VCARD group of people. The group must
-specify the people linked by <code>vcard:member</code></p>
-<pre>
+    <h3>Assignee group (new, untested)</h3>
+    <p>
+      You can create or link to VCARD group of people. The group must specify
+      the people linked by <code>vcard:member</code>
+    </p>
+    <pre>
 <code>    :this  wf:assigneeGroup :Devs .
       :Devs a vcard:Group; vcard:fn "The dream team";
             vcard:member :Alice, :Bob, :Charlie .
@@ -209,30 +248,35 @@ specify the people linked by <code>vcard:member</code></p>
             :Bob foaf:name "Bob Brown".
             :Charlie foaf:name "Robert Crimson".</code>
 </pre>
-<p>You can have more than one assignee group. You can have an
-associated project, with its developers, as well. All the
-developers mentioned will be available to be allocated to
-issues.</p>
-<h2>History</h2>
-<p>This issue tracker originally was basically a copy pf the
-functionality of Roundup
-https://en.wikipedia.org/wiki/Roundup<em>(issue</em>tracker) a
-python-based configurable issue tracker we were using before for
-the group. Roundup is, for example, used for the python language
-itself.</p>
-<h2>Future</h2>
-<p>Currently (2019-09) there is no user interface tooling for
-guiding the user through the task of creating a new tracker. This
-would clearly be valuable! @@ link to issue. Help would be great in
-making that.</p>
-<p>Other use</p>
-<p>The current method of storing all the issues in one file works
-for small projects but clearly doesn't scale with size or time. A
-plan is to use a <code>issueURITemplate</code> to allow issues to
-placed in subfolders by date, or timestamp, etc.</p>
-<p>A virtual tracker is a tracker which aggregates a view of
-several different tracker would be valuable, for example to
-aggregate all the issues I have been assigned to, whichever of the
-projects</p>
-</body>
+    <p>
+      You can have more than one assignee group. You can have an associated
+      project, with its developers, as well. All the developers mentioned will
+      be available to be allocated to issues.
+    </p>
+    <h2>History</h2>
+    <p>
+      This issue tracker originally was basically a copy pf the functionality of
+      Roundup https://en.wikipedia.org/wiki/Roundup<em>(issue</em>tracker) a
+      python-based configurable issue tracker we were using before for the
+      group. Roundup is, for example, used for the python language itself.
+    </p>
+    <h2>Future</h2>
+    <p>
+      Currently (2019-09) there is no user interface tooling for guiding the
+      user through the task of creating a new tracker. This would clearly be
+      valuable! @@ link to issue. Help would be great in making that.
+    </p>
+    <p>Other use</p>
+    <p>
+      The current method of storing all the issues in one file works for small
+      projects but clearly doesn't scale with size or time. A plan is to use a
+      <code>issueURITemplate</code> to allow issues to placed in subfolders by
+      date, or timestamp, etc.
+    </p>
+    <p>
+      A virtual tracker is a tracker which aggregates a view of several
+      different tracker would be valuable, for example to aggregate all the
+      issues I have been assigned to, whichever of the projects
+    </p>
+  </body>
 </html>
