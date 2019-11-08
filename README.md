@@ -1,6 +1,5 @@
 # issue-pane
 
-
 Issue tracker and bug editor pane, very configurable. Solid pane compatible
 At the moment to start a tracker you have to configure the config file in turtle.
 
