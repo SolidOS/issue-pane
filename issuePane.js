@@ -12,7 +12,6 @@
 /* global confirm, $rdf */
 
 const UI = require('solid-ui')
-const panes = require('pane-registry')
 const ns = UI.ns
 
 const SET_MODIFIED_DATES = false
@@ -25,8 +24,8 @@ module.exports = {
   audience: [ns.solid('PowerUser')],
 
   // Does the subject deserve an issue pane?
-  label: function (subject) {
-    var kb = UI.store
+  label: function (subject, context) {
+    var kb = context.session.store
     var t = kb.findTypeURIs(subject)
     if (
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
@@ -39,13 +38,14 @@ module.exports = {
     return null // No under other circumstances (while testing at least!)
   },
 
-  render: function (subject, dom) {
-    var kb = UI.store
+  render: function (subject, context) {
+    const dom = context.dom
+    const kb = context.session.store
     var ns = UI.ns
     var WF = $rdf.Namespace('http://www.w3.org/2005/01/wf/flow#')
     var DC = $rdf.Namespace('http://purl.org/dc/elements/1.1/')
     var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
-    var outliner = panes.getOutliner(dom)
+    var outliner = context.getOutliner(dom)
 
     var div = dom.createElement('div')
     div.setAttribute('class', 'issuePane')
@@ -189,8 +189,8 @@ module.exports = {
       // form.addEventListener('submit', function() {try {sendNewIssue} catch(e){console.log('sendNewIssue: '+e)}}, false)
       // form.setAttribute('onsubmit', "function xx(){return false;}")
 
-      UI.store.fetcher.removeCallback('done', 'expand') // @@ experimental -- does this kill the re-paint? no
-      UI.store.fetcher.removeCallback('fail', 'expand')
+      context.session.store.fetcher.removeCallback('done', 'expand') // @@ experimental -- does this kill the re-paint? no
+      context.session.store.fetcher.removeCallback('fail', 'expand')
 
       var states = kb.any(tracker, WF('issueClass'))
       var classLabel = UI.utils.label(states)
@@ -233,7 +233,7 @@ module.exports = {
         var appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
         // console.log("Ready to make new instance at "+ws)
         var sp = UI.ns.space
-        var kb = UI.store
+        var kb = context.session.store
 
         if (!base) {
           base = kb.any(ws, sp('uriPrefix')).value
@@ -638,8 +638,8 @@ module.exports = {
       refreshButton.addEventListener(
         'click',
         function (e) {
-          UI.store.fetcher.unload(messageStore)
-          UI.store.fetcher.nowOrWhenFetched(
+          context.session.store.fetcher.unload(messageStore)
+          context.session.store.fetcher.nowOrWhenFetched(
             messageStore.uri,
             undefined,
             function (ok, body) {
@@ -676,11 +676,11 @@ module.exports = {
       var trackerURI = tracker.uri.split('#')[0]
       // Much data is in the tracker instance, so wait for the data from it
 
-      UI.store.fetcher
+      context.session.store.fetcher
         .load(tracker.doc())
         .then(function (xhrs) {
           var stateStore = kb.any(tracker, WF('stateStore'))
-          UI.store.fetcher.nowOrWhenFetched(
+          context.session.store.fetcher.nowOrWhenFetched(
             stateStore,
             subject,
             function drawIssuePane2 (ok, body) {
@@ -699,7 +699,7 @@ module.exports = {
           const msg = 'Failed to load config ' + trackerURI + ' ' + err
           return complain(msg)
         })
-      UI.store.fetcher.nowOrWhenFetched(
+      context.session.store.fetcher.nowOrWhenFetched(
         trackerURI,
         subject,
         function drawIssuePane1 (ok, body) {
@@ -758,7 +758,7 @@ module.exports = {
       // Table of issues - when we have the main issue list
       // We also need the ontology loaded
       //
-      UI.store.fetcher
+      context.session.store.fetcher
         .load([stateStore])
         .then(function (xhrs) {
           var query = new $rdf.Query(UI.utils.label(subject))
@@ -852,8 +852,8 @@ module.exports = {
             refreshButton.addEventListener(
               'click',
               function (e) {
-                UI.store.fetcher.unload(stateStore)
-                UI.store.fetcher.nowOrWhenFetched(
+                context.session.store.fetcher.unload(stateStore)
+                context.session.store.fetcher.nowOrWhenFetched(
                   stateStore.uri,
                   undefined,
                   function (ok, body) {
