@@ -30,8 +30,7 @@ module.exports = {
     if (
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
       kb.holds(subject, UI.ns.wf('tracker'))
-    )
-      return 'issue' // in case ontology not available
+    ) { return 'issue' } // in case ontology not available
     if (t['http://www.w3.org/2005/01/wf/flow#Tracker']) return 'tracker'
     // Later: Person. For a list of things assigned to them,
     // open bugs on projects they are developer on, etc
@@ -60,7 +59,7 @@ module.exports = {
         )
         var insertions = [$rdf.st(subject, DCT('modified'), new Date(), doc)]
         if (me) insertions.push($rdf.st(subject, WF('modifiedBy'), me, doc))
-        updater.update(deletions, insertions, function (uri, ok, body) {})
+        updater.update(deletions, insertions, function (_uri, _ok, _body) {})
       }
     }
 
@@ -150,8 +149,7 @@ module.exports = {
           new $rdf.Statement(issue, DCT('created'), new Date(), stateStore)
         )
         var initialStates = kb.each(tracker, WF('initialState'))
-        if (initialStates.length === 0)
-          console.log('This tracker has no initialState')
+        if (initialStates.length === 0) { console.log('This tracker has no initialState') }
         for (var i = 0; i < initialStates.length; i++) {
           sts.push(
             new $rdf.Statement(
@@ -162,10 +160,11 @@ module.exports = {
             )
           )
         }
-        if (superIssue)
+        if (superIssue) {
           sts.push(
             new $rdf.Statement(superIssue, WF('dependent'), issue, stateStore)
           )
+        }
 
         // Other things are stores in the individual
         if (template) {
@@ -393,8 +392,7 @@ module.exports = {
       UI.authn.checkUser() // kick off async operation
 
       var states = kb.any(tracker, WF('issueClass'))
-      if (!states)
-        throw new Error('This tracker ' + tracker + ' has no issueClass')
+      if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
       var select = UI.widgets.makeSelectForCategory(
         dom,
         kb,
@@ -555,7 +553,7 @@ module.exports = {
         b.setAttribute('style', 'float: right; margin: 0.5em 1em;')
         b.addEventListener(
           'click',
-          function (e) {
+          function (_event) {
             div.appendChild(newIssueForm(dom, kb, tracker, subject))
           },
           false
@@ -606,7 +604,7 @@ module.exports = {
         kb.sym(messageStore.uri + '#' + 'Chat' + timestring()) // var chat =
       }
 
-      kb.fetcher.nowOrWhenFetched(messageStore, function (ok, body, xhr) {
+      kb.fetcher.nowOrWhenFetched(messageStore, function (ok, body, _xhr) {
         if (!ok) {
           var er = dom.createElement('p')
           er.textContent = body // @@ use nice error message
@@ -626,10 +624,10 @@ module.exports = {
       })
       donePredicate(ns.wf('attachment'))
 
-      outliner.appendPropertyTRs(div, plist, false, function (pred, inverse) {
+      outliner.appendPropertyTRs(div, plist, false, function (pred, _inverse) {
         return !(pred.uri in predicateURIsDone)
       })
-      outliner.appendPropertyTRs(div, qlist, true, function (pred, inverse) {
+      outliner.appendPropertyTRs(div, qlist, true, function (pred, _inverse) {
         return !(pred.uri in predicateURIsDone)
       })
 
@@ -637,7 +635,7 @@ module.exports = {
       refreshButton.textContent = 'refresh'
       refreshButton.addEventListener(
         'click',
-        function (e) {
+        function (_event) {
           context.session.store.fetcher.unload(messageStore)
           context.session.store.fetcher.nowOrWhenFetched(
             messageStore.uri,
@@ -678,16 +676,17 @@ module.exports = {
 
       context.session.store.fetcher
         .load(tracker.doc())
-        .then(function (xhrs) {
+        .then(function (_xhrs) {
           var stateStore = kb.any(tracker, WF('stateStore'))
           context.session.store.fetcher.nowOrWhenFetched(
             stateStore,
             subject,
             function drawIssuePane2 (ok, body) {
-              if (!ok)
+              if (!ok) {
                 return console.log(
                   'Failed to load state ' + stateStore + ' ' + body
                 )
+              }
               singleIssueUI(subject, div)
               updater.addDownstreamChangeListener(stateStore, function () {
                 refreshTree(div)
@@ -703,10 +702,11 @@ module.exports = {
         trackerURI,
         subject,
         function drawIssuePane1 (ok, body) {
-          if (!ok)
+          if (!ok) {
             return console.log(
               'Failed to load config ' + trackerURI + ' ' + body
             )
+          }
         }
       ) // End nowOrWhenFetched tracker
 
@@ -748,7 +748,7 @@ module.exports = {
       b.appendChild(span)
       b.addEventListener(
         'click',
-        function (e) {
+        function (_event) {
           b.setAttribute('disabled', 'true')
           container.appendChild(newIssueForm(dom, kb, subject))
         },
@@ -760,7 +760,7 @@ module.exports = {
       //
       context.session.store.fetcher
         .load([stateStore])
-        .then(function (xhrs) {
+        .then(function (_xhrs) {
           var query = new $rdf.Query(UI.utils.label(subject))
           var cats = kb.each(tracker, WF('issueCategory')) // zero or more
           var vars = ['issue', 'state', 'created']
@@ -821,7 +821,7 @@ module.exports = {
             overlayPane.innerHTML = '' // clear existing
             var button = overlayPane.appendChild(dom.createElement('button'))
             button.textContent = 'X'
-            button.addEventListener('click', function (event) {
+            button.addEventListener('click', function (_event) {
               overlayPane.innerHTML = '' // clear overlay
             })
             singleIssueUI(kb.sym(href), overlayPane)
@@ -851,7 +851,7 @@ module.exports = {
             refreshButton.textContent = 'refresh'
             refreshButton.addEventListener(
               'click',
-              function (e) {
+              function (_event) {
                 context.session.store.fetcher.unload(stateStore)
                 context.session.store.fetcher.nowOrWhenFetched(
                   stateStore.uri,
