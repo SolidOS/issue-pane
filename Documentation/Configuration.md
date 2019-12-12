@@ -32,13 +32,13 @@ You may find other namespaces useful, such as:
     @prefix dc: <http://purl.org/dc/elements/1.1/>.
     @prefix vcard: <http://www.w3.org/2006/vcard/ns#>.
 
-
-Typically, (and currently) a tracker has one config file,  say `index.ttl`
+Typically, (and currently) a tracker has one config file, say `index.ttl`
 one file to actually store the state of all the issues, say `state.ttl`,
 and optionally one file to store chat messages, say `chat.ttl` if you don't
 want them to be in the same file as the issues themselves.
 
 You should *create empty files* for the state and chat files.
+
 Then create the tracker config file and you are done.
 
 Your config file will start by defining the tracker object itself.
@@ -56,7 +56,7 @@ a tracker object. So let's do that in this example:
         wf:messageStore <chat.ttl> .
 
 
-##  Defining possible issue states
+## Defining possible issue states
 
 An issue is always in one of a number of states, like Open or Closed, for a simple system, or 
 for a more complex one, say, New, Assigned, InProgress, Pending External Feedback, Rejected, or Done.
@@ -71,6 +71,7 @@ It is defined in the ontology to have two subclasses, `wf:Open` and `wf:Closed`.
        
     :this wf:issueClass wf:Task .
 
+
 Alternatively, you can defined your own state classes:
 
 1. Define a superclass, say `FooIssue`.
@@ -78,6 +79,7 @@ Alternatively, you can defined your own state classes:
 3. For some, but not all, of your subclasses, define them to be a subclass of `wf:Open`. These will be the open issues. By default, only open issues are displayed.
 4. Optionally, define a `ui:backgroundColor` for each subclass to make them stand out from each other.
 5. Declare the superclass to be  a disjoint union of the subclasses. That means that a task can only be in one subsclass at a time.
+
 
         :this wf:stateClass :FooIssue ;
             wf:initialState :New .
@@ -111,7 +113,9 @@ Alternatively, you can defined your own state classes:
         :Obsolete a s:Class; s:subClassOf :FooIssue, wf:Closed; s:label "obsolete/missed"; ui:sortOrder 10;
             s:comment "Overtaken by time or events.".
 
+
 (Note that the classes must be explicitly subclasses of (at least indirectly) wf:Task
+
 as solid-ui/rdflib and maybe others are not smart enough to deduce that from the
 owl:disjointUnionOf.)
 
@@ -119,15 +123,17 @@ owl:disjointUnionOf.)
 
 Depending on what sort of application the tracker is being used for,
 it may be useful to categorize issues along one or more axes.
- For example, they could be classified by the sort of issue, between
- Urgent Fix, Bug, Enhancement Request, Blue Sky Idea.
+For example, they could be classified by the sort of issue, between
+Urgent Fix, Bug, Enhancement Request, Blue Sky Idea.
 The could be classified by domain, such as Sales, Marketing, or Engineering,
 or product line, and so on.
 
 A category is defined as a set of disjoint classes used in the issue state above, but then
+
 specified using the `issueCategory` property.   
 
     :this wf:issueCategory :BugType, :Division .
+
 
 This will generate two columns, one for Bug Type, and one for Division, in the issue list.
 
@@ -135,7 +141,7 @@ This will generate two columns, one for Bug Type, and one for Division, in the i
 
 You can run the tracker in a mode in which issues can have sub-issues.
 There is a button on each issue to create sub-issues, and
-a list of sub-issues.  You can turn this on with a boolean flag:
+a list of sub-issues. You can turn this on with a boolean flag:
 
     :this wf:allowSubIssues true .
 
@@ -143,13 +149,13 @@ a list of sub-issues.  You can turn this on with a boolean flag:
 
 By default, any issue will have:
 
- - A title
- - A text description
- - Its creation date
- - its state, like Open/Closed.
- - a text status field about it
- - A small chat thread
- - a place to drag related things like web pages
+- A title
+- A text description
+- Its creation date
+- its state, like Open/Closed.
+- a text status field about it
+- A small chat thread
+- a place to drag related things like web pages
 
 ### Predicate List
 
@@ -159,9 +165,11 @@ You can add issue properties to the default list in two ways:
 
 Defines the list of issue properties to be displayed in the table:
 
+
     :this wf:propertyList ( dc:title  wf:description ) .
 
 #### 2 - Entry form
+
 
 The other is by defining a form to be added to the issue editor:
 
@@ -183,7 +191,9 @@ of two ways.
 
 Mention in the config file that a DOAP project has the tracker as its bug tracker.
 
+
     :FooProject doap:bug-database :this .
+
 
 In the project's rdf document (which may be the same as the tracker or may be different)
 give (at least) the developers and their names.
@@ -213,7 +223,6 @@ You can have more than one assignee group.
 You can have an associated project, with its developers, as well.
 All the developers mentioned will be available to be allocated to issues.
 
-
 ## History
 
 This issue tracker originally was basically a copy pf the functionality of Roundup https://en.wikipedia.org/wiki/Roundup_(issue_tracker)
@@ -222,13 +231,13 @@ a python-based configurable issue tracker we were using before for the group. Ro
 ## Future
 
 Currently (2019-09) there is no user interface tooling for guiding the user through
-the task of creating a new tracker.  This would clearly be valuable! @@ link to issue.
+the task of creating a new tracker. This would clearly be valuable! @@ link to issue.
 Help would be great in making that.
 
 ### Other use
 
 The current method of storing all the issues in one file works for small projects
-but clearly doesn't scale with size or time.  A plan is to use a `issueURITemplate`
+but clearly doesn't scale with size or time. A plan is to use a `issueURITemplate`
 to allow issues to placed in subfolders by date, or timestamp, etc.
 
 A virtual tracker is a tracker which aggregates a view of several different trackers
