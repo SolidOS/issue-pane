@@ -94,7 +94,7 @@ module.exports = {
     var thisPane = this
     var rerender = function (div) {
       var parent = div.parentNode
-      var div2 = thisPane.render(subject, dom)
+      var div2 = thisPane.render(subject, context)
       parent.replaceChild(div2, div)
     }
 
