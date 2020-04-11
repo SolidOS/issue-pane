@@ -9,12 +9,16 @@
  ** like "this" where the string is seen by the user and so I18n is an issue.
  **
  */
-/* global confirm, $rdf */
+/* global confirm */
 
-const UI = require('solid-ui')
+import * as UI from 'solid-ui'
+import { board } from './board' // @@ will later be in solid-UI
+import { renderIssue } from './issue'
+import { newIssueForm } from './newIssue'
+
+const $rdf = UI.rdf
 const ns = UI.ns
-
-const SET_MODIFIED_DATES = false
+const kb = UI.store
 
 module.exports = {
   icon: UI.icons.iconBase + 'noun_97839.svg', // was: js/panes/issue/tbl-bug-22.png
@@ -39,56 +43,19 @@ module.exports = {
 
   render: function (subject, context) {
     const dom = context.dom
-    const kb = context.session.store
+    // const kb = context.session.store
     var ns = UI.ns
     var WF = $rdf.Namespace('http://www.w3.org/2005/01/wf/flow#')
-    var DC = $rdf.Namespace('http://purl.org/dc/elements/1.1/')
-    var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
-    var outliner = context.getOutliner(dom)
+    // var DC = $rdf.Namespace('http://purl.org/dc/elements/1.1/')
+    // var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
+    // var outliner = context.getOutliner(dom)
 
-    var div = dom.createElement('div')
-    div.setAttribute('class', 'issuePane')
-
-    // Don't bother changing the last modified dates of things: save time
-    function setModifiedDate (subj, kb, doc) {
-      if (SET_MODIFIED_DATES) {
-        if (!getOption(tracker, 'trackLastModified')) return
-        var deletions = kb.statementsMatching(subject, DCT('modified'))
-        deletions = deletions.concat(
-          kb.statementsMatching(subject, WF('modifiedBy'))
-        )
-        var insertions = [$rdf.st(subject, DCT('modified'), new Date(), doc)]
-        if (me) insertions.push($rdf.st(subject, WF('modifiedBy'), me, doc))
-        updater.update(deletions, insertions, function (_uri, _ok, _body) {})
-      }
-    }
-
-    function say (message, style) {
-      var pre = dom.createElement('pre')
-      pre.setAttribute('style', style || 'color: grey')
-      div.appendChild(pre)
-      pre.appendChild(dom.createTextNode(message))
-      return pre
-    }
+    var paneDiv = dom.createElement('div')
+    paneDiv.setAttribute('class', 'issuePane')
 
     function complain (message) {
       console.warn(message)
-      div.appendChild(UI.widgets.errorMessageBlock(dom, message))
-    }
-
-    function complainIfBad (ok, body) {
-      if (!ok) {
-        complain(
-          'Sorry, failed to save your change:\n' + body,
-          'background-color: pink;'
-        )
-      }
-    }
-
-    var getOption = function (tracker, option) {
-      // eg 'allowSubIssues'
-      var opt = kb.any(tracker, ns.ui(option))
-      return !!(opt && opt.value)
+      paneDiv.appendChild(UI.widgets.errorMessageBlock(dom, message))
     }
 
     var timestring = function () {
@@ -98,139 +65,16 @@ module.exports = {
     }
 
     function hideOverlay () {
-      overlayPane.innerHTML = '' // clear overlay
+      overlay.innerHTML = '' // clear overlay
       overlay.style.visibility = 'hidden'
     }
-    function exposeOverlay (subject, overlayPane) {
-      const overlay = overlayPane.parentNode
-      overlayPane.innerHTML = '' // clear existing
-      const button = overlayPane.appendChild(
+    function exposeOverlay (subject) {
+      overlay.innerHTML = '' // clear existing
+      const button = overlay.appendChild(
         UI.widgets.button(dom, UI.icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
       button.style.float = 'right'
       overlay.style.visibility = 'visible'
-      singleIssueUI(subject, overlayPane)
-    }
-
-    //  Form to collect data about a New Issue
-    //
-    var newIssueForm = function (dom, kb, tracker, superIssue, originalButton) {
-      var form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error
-      var stateStore = kb.any(tracker, WF('stateStore'))
-
-      var sendNewIssue = function () {
-        titlefield.setAttribute('class', 'pendingedit')
-        titlefield.disabled = true
-        var sts = []
-        var issue
-
-        var expandTemplate = function (template) {
-          const now = new $rdf.Literal(new Date())
-          const nnnn = '' + new Date().getTime()
-          const YYYY = now.value.slice(0, 4)
-          var MM = now.value.slice(5, 7)
-          var DD = now.value.slice(8, 10)
-          return template
-            .replace('{N}', nnnn)
-            .replace('{YYYY}', YYYY)
-            .replace('{MM}', MM)
-            .replace('{DD}', DD)
-        }
-        // Where to store the new issue?
-        var template = kb.anyValue(tracker, WF('issueURITemplate'))
-        var issueDoc
-        if (template) {
-          // Does each issue do in its own file?
-          template = $rdf.uri.join(template, stateStore.uri) // Template is relative
-          issue = kb.sym(expandTemplate(template))
-        } else {
-          issue = kb.sym(stateStore.uri + '#' + 'Iss' + timestring())
-        }
-        issueDoc = issue.doc()
-
-        // Basic 9 core predicates are stored in the main stateStore
-
-        var title = kb.literal(titlefield.value)
-        sts.push(new $rdf.Statement(issue, WF('tracker'), tracker, stateStore))
-        sts.push(new $rdf.Statement(issue, DC('title'), title, stateStore))
-        sts.push(
-          new $rdf.Statement(issue, DCT('created'), new Date(), stateStore)
-        )
-        var initialStates = kb.each(tracker, WF('initialState'))
-        if (initialStates.length === 0) { console.log('This tracker has no initialState') }
-        for (var i = 0; i < initialStates.length; i++) {
-          sts.push(
-            new $rdf.Statement(
-              issue,
-              ns.rdf('type'),
-              initialStates[i],
-              stateStore
-            )
-          )
-        }
-        if (superIssue) {
-          sts.push(
-            new $rdf.Statement(superIssue, WF('dependent'), issue, stateStore)
-          )
-        }
-
-        // Other things are stores in the individual
-        if (template) {
-          sts.push(new $rdf.Statement(issue, WF('tracker'), tracker, issueDoc))
-          sts.push(
-            new $rdf.Statement(issue, ns.rdfs('seeAlso'), stateStore, issueDoc)
-          )
-        }
-
-        var sendComplete = function (uri, success, body) {
-          if (!success) {
-            console.log("Error: can't save new issue:" + body)
-          } else {
-            form.parentNode.removeChild(form)
-            UI.widgets.refreshTree(div)
-            exposeOverlay(issue, overlayPane)
-            if (originalButton) {
-              originalButton.setAttribute('disabled', false)
-            }
-            // outliner.GotoSubject(issue, true, undefined, true, undefined)
-          }
-        }
-        updater.update([], sts, sendComplete)
-      }
-      // form.addEventListener('submit', function() {try {sendNewIssue} catch(e){console.log('sendNewIssue: '+e)}}, false)
-      // form.setAttribute('onsubmit', "function xx(){return false;}")
-
-      context.session.store.fetcher.removeCallback('done', 'expand') // @@ experimental -- does this kill the re-paint? no
-      context.session.store.fetcher.removeCallback('fail', 'expand')
-
-      var states = kb.any(tracker, WF('issueClass'))
-      var classLabel = UI.utils.label(states)
-      form.innerHTML =
-        '<h2>Add new ' +
-        (superIssue ? 'sub ' : '') +
-        classLabel +
-        '</h2><p>Title of new ' +
-        classLabel +
-        ':</p>'
-      var titlefield = dom.createElement('input')
-      titlefield.setAttribute('type', 'text')
-      titlefield.setAttribute(
-        'style',
-        'margin: 0.5em; font-size: 100%; padding: 0.3em;'
-      )
-      titlefield.setAttribute('size', '100')
-      titlefield.setAttribute('maxLength', '2048') // No arbitrary limits
-      titlefield.select() // focus next user input
-      titlefield.addEventListener(
-        'keyup',
-        function (e) {
-          if (e.keyCode === 13) {
-            sendNewIssue()
-          }
-        },
-        false
-      )
-      form.appendChild(titlefield)
-      return form
+      overlay.appendChild(renderIssue(subject, context))
     }
 
     // ///////////////////// Reproduction: Spawn a new instance of this app
@@ -352,14 +196,9 @@ module.exports = {
 
     // /////////////////////////////////////////////////////////////////////////////
 
-    var updater = kb.updater
-    var t = kb.findTypeURIs(subject)
-    var me = UI.authn.currentUser()
-    var tracker
+    // Refresh the DOM tree - now in UI.widgets
 
-    // Refresh the DOM tree
-
-    var refreshTree = function (root) {
+    function refreshTree (root) {
       if (root.refresh) {
         root.refresh()
         return
@@ -369,7 +208,167 @@ module.exports = {
       }
     }
 
+    function renderBoard (tracker) {
+      const states = kb.any(subject, WF('issueClass'))
+      var query = new $rdf.Query(UI.utils.label(subject))
+      var cats = [kb.any(tracker, WF('issueCategory'))] // pick one @@
+      var vars = ['issue', 'state', 'created']
+      for (let i = 0; i < cats.length; i++) {
+        vars.push('_cat_' + i)
+      }
+      var v = {} // The RDF variable objects for each variable name
+      vars.map(function (x) {
+        query.vars.push((v[x] = $rdf.variable(x)))
+      })
+      query.pat.add(v.issue, WF('tracker'), tracker)
+      query.pat.add(v.issue, ns.dct('created'), v.created)
+      query.pat.add(v.issue, ns.rdf('type'), v.state)
+      query.pat.add(v.state, ns.rdfs('subClassOf'), states)
+      for (let i = 0; i < cats.length; i++) {
+        query.pat.add(v.issue, ns.rdf('type'), v['_cat_' + i])
+        query.pat.add(v['_cat_' + i], ns.rdfs('subClassOf'), cats[i])
+      }
+
+      query.pat.optional = []
+
+      var propertyList = kb.any(tracker, WF('propertyList')) // List of extra properties
+      if (propertyList) {
+        var properties = propertyList.elements
+        for (var p = 0; p < properties.length; p++) {
+          var prop = properties[p]
+          var vname = '_prop_' + p
+          if (prop.uri.indexOf('#') >= 0) {
+            vname = prop.uri.split('#')[1]
+          }
+          var oneOpt = new $rdf.IndexedFormula()
+          query.pat.optional.push(oneOpt)
+          query.vars.push((v[vname] = $rdf.variable(vname)))
+          oneOpt.add(v.issue, prop, v[vname])
+        }
+      }
+
+      var selectedStates = {}
+      var possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
+      possible.map(function (s) {
+        if (
+          kb.holds(s, ns.rdfs('subClassOf'), WF('Open')) ||
+          s.sameTerm(WF('Open'))
+        ) {
+          selectedStates[s.uri] = true
+          // console.log('on '+s.uri); // @@
+        }
+      })
+
+      function exposeThisOverlay (href) {
+        const subject = $rdf.sym(href)
+        exposeOverlay(subject)
+      }
+
+      var tableDiv = board(dom, {
+        query: query,
+        keyVariable: '?issue', // Charactersic of row
+        hints: {
+          '?issue': { linkFunction: exposeThisOverlay, label: 'Title' },
+          '?created': { cellFormat: 'shortDate' },
+          '?state': { initialSelection: selectedStates, label: 'Status' }
+        }
+      })
+      return tableDiv
+    }
+
+    function renderTable (tracker) {
+      const states = kb.any(subject, WF('issueClass'))
+      var query = new $rdf.Query(UI.utils.label(subject))
+      var cats = kb.each(tracker, WF('issueCategory')) // zero or more
+      var vars = ['issue', 'state', 'created']
+      for (let i = 0; i < cats.length; i++) {
+        vars.push('_cat_' + i)
+      }
+      var v = {} // The RDF variable objects for each variable name
+      vars.map(function (x) {
+        query.vars.push((v[x] = $rdf.variable(x)))
+      })
+      query.pat.add(v.issue, WF('tracker'), tracker)
+      // query.pat.add(v['issue'], ns.dc('title'), v['title'])
+      query.pat.add(v.issue, ns.dct('created'), v.created)
+      query.pat.add(v.issue, ns.rdf('type'), v.state)
+      query.pat.add(v.state, ns.rdfs('subClassOf'), states)
+      for (let i = 0; i < cats.length; i++) {
+        query.pat.add(v.issue, ns.rdf('type'), v['_cat_' + i])
+        query.pat.add(v['_cat_' + i], ns.rdfs('subClassOf'), cats[i])
+      }
+
+      query.pat.optional = []
+
+      var propertyList = kb.any(tracker, WF('propertyList')) // List of extra properties
+      if (propertyList) {
+        var properties = propertyList.elements
+        for (var p = 0; p < properties.length; p++) {
+          var prop = properties[p]
+          var vname = '_prop_' + p
+          if (prop.uri.indexOf('#') >= 0) {
+            vname = prop.uri.split('#')[1]
+          }
+          var oneOpt = new $rdf.IndexedFormula()
+          query.pat.optional.push(oneOpt)
+          query.vars.push((v[vname] = $rdf.variable(vname)))
+          oneOpt.add(v.issue, prop, v[vname])
+        }
+      }
+
+      var selectedStates = {}
+      var possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
+      possible.map(function (s) {
+        if (
+          kb.holds(s, ns.rdfs('subClassOf'), WF('Open')) ||
+          s.sameTerm(WF('Open'))
+        ) {
+          selectedStates[s.uri] = true
+          // console.log('on '+s.uri); // @@
+        }
+      })
+
+      function exposeThisOverlay (href) {
+        const subject = $rdf.sym(href)
+        exposeOverlay(subject)
+      }
+
+      var tableDiv = UI.table(dom, {
+        query: query,
+        keyVariable: '?issue', // Charactersic of row
+        hints: {
+          '?issue': { linkFunction: exposeThisOverlay, label: 'Title' },
+          '?created': { cellFormat: 'shortDate' },
+          '?state': { initialSelection: selectedStates, label: 'Status' }
+        }
+      })
+      return tableDiv
+    }
+
+    /* Rander tabs with both views
+    */
+    function renderTabsTableAndBoard () {
+      function renderMain (object) {
+        if (object === 'board') {
+          return renderBoard(tracker)
+        } else {
+          return renderTable(tracker)
+        }
+      }
+      const options = {
+        renderMain: renderMain,
+        items: ['table', 'board']
+      }
+      const tabs = UI.tabs.tabWidget(options)
+      return tabs
+    }
+
     function renderTracker () {
+      function showNewIssue (issue) {
+        UI.widgets.refreshTree(paneDiv)
+        exposeOverlay(issue)
+        b.setAttribute('disabled', false)
+      }
       tracker = subject
 
       var states = kb.any(subject, WF('issueClass'))
@@ -381,7 +380,7 @@ module.exports = {
 
       var h = dom.createElement('h2')
       h.setAttribute('style', 'font-size: 150%')
-      div.appendChild(h)
+      paneDiv.appendChild(h)
       var classLabel = UI.utils.label(states)
       h.appendChild(dom.createTextNode(classLabel + ' list')) // Use class label @@I18n
 
@@ -391,7 +390,7 @@ module.exports = {
       b.setAttribute('type', 'button')
       b.setAttribute('style', 'padding: 0.3em; font-size: 100%; margin: 0.5em;')
       container.appendChild(b)
-      div.appendChild(container)
+      paneDiv.appendChild(container)
       var img = dom.createElement('img')
       img.setAttribute('src', UI.icons.iconBase + 'noun_19460_green.svg')
       img.setAttribute('style', 'width: 1em; height: 1em; margin: 0.2em;')
@@ -403,7 +402,7 @@ module.exports = {
         'click',
         function (_event) {
           b.setAttribute('disabled', 'true')
-          container.appendChild(newIssueForm(dom, kb, tracker, null, b))
+          container.appendChild(newIssueForm(dom, kb, tracker, null, b, showNewIssue))
         },
         false
       )
@@ -414,103 +413,32 @@ module.exports = {
       context.session.store.fetcher
         .load([stateStore])
         .then(function (_xhrs) {
-          var query = new $rdf.Query(UI.utils.label(subject))
-          var cats = kb.each(tracker, WF('issueCategory')) // zero or more
-          var vars = ['issue', 'state', 'created']
-          for (let i = 0; i < cats.length; i++) {
-            vars.push('_cat_' + i)
-          }
-          var v = {} // The RDF variable objects for each variable name
-          vars.map(function (x) {
-            query.vars.push((v[x] = $rdf.variable(x)))
-          })
-          query.pat.add(v.issue, WF('tracker'), tracker)
-          // query.pat.add(v['issue'], ns.dc('title'), v['title'])
-          query.pat.add(v.issue, ns.dct('created'), v.created)
-          query.pat.add(v.issue, ns.rdf('type'), v.state)
-          query.pat.add(v.state, ns.rdfs('subClassOf'), states)
-          for (let i = 0; i < cats.length; i++) {
-            query.pat.add(v.issue, ns.rdf('type'), v['_cat_' + i])
-            query.pat.add(v['_cat_' + i], ns.rdfs('subClassOf'), cats[i])
-          }
-
-          query.pat.optional = []
-
-          var propertyList = kb.any(tracker, WF('propertyList')) // List of extra properties
-          // console.log('Property list: '+propertyList) //
-          if (propertyList) {
-            var properties = propertyList.elements
-            for (var p = 0; p < properties.length; p++) {
-              var prop = properties[p]
-              var vname = '_prop_' + p
-              if (prop.uri.indexOf('#') >= 0) {
-                vname = prop.uri.split('#')[1]
-              }
-              var oneOpt = new $rdf.IndexedFormula()
-              query.pat.optional.push(oneOpt)
-              query.vars.push((v[vname] = $rdf.variable(vname)))
-              oneOpt.add(v.issue, prop, v[vname])
-            }
-          }
-
-          // console.log('Query pattern is:\n'+query.pat)
-          // console.log('Query pattern optional is:\n'+opts)
-
-          var selectedStates = {}
-          var possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
-          possible.map(function (s) {
-            if (
-              kb.holds(s, ns.rdfs('subClassOf'), WF('Open')) ||
-              s.sameTerm(WF('Open'))
-            ) {
-              selectedStates[s.uri] = true
-              // console.log('on '+s.uri); // @@
-            }
-          })
-
-          function exposeThisOverlay (href) {
-            const subject = $rdf.sym(href)
-            exposeOverlay(subject, overlayPane)
-          }
-
-          var tableDiv = UI.table(dom, {
-            query: query,
-            keyVariable: '?issue', // Charactersic of row
-            hints: {
-              '?issue': { linkFunction: exposeThisOverlay, title: 'Title' },
-              '?created': { cellFormat: 'shortDate' },
-              '?state': { initialSelection: selectedStates, title: 'Status' }
-            }
-          })
-          div.appendChild(tableDiv)
+          const tableDiv = renderTabsTableAndBoard(tracker)
+          // const tableDiv = renderTable(tracker) // was
+          paneDiv.appendChild(tableDiv)
 
           if (tableDiv.refresh) {
             // Refresh function
             var refreshButton = dom.createElement('button')
-            refreshButton.textContent = 'refresh'
+            refreshButton.textContent = 'refresh table'
             refreshButton.addEventListener(
               'click',
-              function (_event) {
-                context.session.store.fetcher.unload(stateStore)
-                context.session.store.fetcher.nowOrWhenFetched(
-                  stateStore.uri,
-                  undefined,
-                  function (ok, body) {
-                    if (!ok) {
-                      console.log('Cant refresh data:' + body)
-                    } else {
-                      tableDiv.refresh()
-                    }
-                  }
-                )
+              async function (_event) {
+                try {
+                  await kb.fetcher.load(stateStore, { force: true, clearPreviousData: true })
+                } catch (err) {
+                  alert(err)
+                  return
+                }
+                refreshTree(tableDiv)
               },
               false
             )
-            div.appendChild(refreshButton)
+            paneDiv.appendChild(refreshButton)
           } else {
-            console.log('No refresh function?!')
+            console.log('No table refresh function?!')
           }
-          div.appendChild(newTrackerButton(subject))
+          paneDiv.appendChild(newTrackerButton(subject))
           updater.addDownstreamChangeListener(stateStore, tableDiv.refresh) // Live update
         })
         .catch(function (err) {
@@ -518,305 +446,10 @@ module.exports = {
         })
       // end of Tracker instance
     } // render tracker
-    // All the UI for a single issue, without store load or listening for changes
-    //
-    function singleIssueUI (subject, issueDiv) {
-      var ns = UI.ns
-      var predicateURIsDone = {}
-      var donePredicate = function (pred) {
-        predicateURIsDone[pred.uri] = true
-      }
-      donePredicate(ns.rdf('type'))
-      donePredicate(ns.dc('title'))
 
-      var setPaneStyle = function () {
-        var types = kb.findTypeURIs(subject)
-        var mystyle = 'padding: 0.5em 1.5em 1em 1.5em; '
-        var backgroundColor = null
-        for (var uri in types) {
-          backgroundColor = kb.any(
-            kb.sym(uri),
-            kb.sym('http://www.w3.org/ns/ui#backgroundColor')
-          )
-          if (backgroundColor) break
-        }
-        backgroundColor = backgroundColor ? backgroundColor.value : '#eee' // default grey
-        mystyle += 'background-color: ' + backgroundColor + '; '
-        issueDiv.setAttribute('style', mystyle)
-      }
-      setPaneStyle()
-
-      var stateStore = kb.any(tracker, WF('stateStore'))
-      var store = kb.sym(subject.uri.split('#')[0])
-
-      UI.authn.checkUser() // kick off async operation
-
-      var states = kb.any(tracker, WF('issueClass'))
-      if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
-      var select = UI.widgets.makeSelectForCategory(
-        dom,
-        kb,
-        subject,
-        states,
-        stateStore,
-        function (ok, body) {
-          if (ok) {
-            setModifiedDate(store, kb, store)
-            refreshTree(issueDiv)
-          } else {
-            console.log('Failed to change state:\n' + body)
-          }
-        }
-      )
-      issueDiv.appendChild(select)
-
-      var cats = kb.each(tracker, WF('issueCategory')) // zero or more
-      for (var i = 0; i < cats.length; i++) {
-        issueDiv.appendChild(
-          UI.widgets.makeSelectForCategory(
-            dom,
-            kb,
-            subject,
-            cats[i],
-            stateStore,
-            function (ok, body) {
-              if (ok) {
-                setModifiedDate(store, kb, store)
-                refreshTree(issueDiv)
-              } else {
-                console.log('Failed to change category:\n' + body)
-              }
-            }
-          )
-        )
-      }
-
-      const a = dom.createElement('a')
-      a.setAttribute('href', tracker.uri)
-      a.setAttribute('style', 'float:right')
-      issueDiv.appendChild(a).textContent = UI.utils.label(tracker)
-      a.addEventListener('click', UI.widgets.openHrefInOutlineMode, true)
-      donePredicate(ns.wf('tracker'))
-      // Descriptions can be long and are stored local to the issue
-      issueDiv.appendChild(
-        UI.widgets.makeDescription(
-          dom,
-          kb,
-          subject,
-          WF('description'),
-          store,
-          function (ok, body) {
-            if (ok) setModifiedDate(store, kb, store)
-            else console.log('Failed to change description:\n' + body)
-          }
-        )
-      )
-      donePredicate(WF('description'))
-
-      // Assigned to whom?
-
-      var assignments = kb.statementsMatching(subject, ns.wf('assignee'))
-      if (assignments.length > 1) {
-        say('Weird, was assigned to more than one person. Fixing ..')
-        var deletions = assignments.slice(1)
-        updater.update(deletions, [], function (uri, ok, body) {
-          if (ok) {
-            say('Now fixed.')
-          } else {
-            complain('Fixed failed: ' + body)
-          }
-        })
-      }
-
-      // Remaining properties
-      var plist = kb.statementsMatching(subject)
-      var qlist = kb.statementsMatching(undefined, undefined, subject)
-
-      // Who could be assigned to this?
-      // Anyone assigned to any issue we know about
-
-      async function getPossibleAssignees () {
-        var devs = []
-        var devGroups = kb.each(subject, ns.wf('assigneeGroup'))
-        for (let i = 0; i < devGroups.length; i++) {
-          const group = devGroups[i]
-          await kb.fetcher.load()
-          devs = devs.concat(kb.each(group, ns.vcard('member')))
-        }
-        // Anyone who is a developer of any project which uses this tracker
-        var proj = kb.any(null, ns.doap('bug-database'), tracker) // What project?
-        if (proj) {
-          await kb.fetcher.load(proj)
-          devs = devs.concat(kb.each(proj, ns.doap('developer')))
-        }
-        return devs
-      }
-
-      getPossibleAssignees().then(devs => {
-        if (devs.length) {
-          devs.map(function (person) {
-            kb.fetcher.lookUpThing(person)
-          }) // best effort async for names etc
-          var opts = {
-            // 'mint': '** Add new person **',
-            nullLabel: '(unassigned)'
-            /* 'mintStatementsFun': function (newDev) {
-              var sts = [ $rdf.st(newDev, ns.rdf('type'), ns.foaf('Person')) ]
-              if (proj) sts.push($rdf.st(proj, ns.doap('developer'), newDev))
-              return sts
-            }
-            */
-          }
-          issueDiv.appendChild(
-            UI.widgets.makeSelectForOptions(
-              dom,
-              kb,
-              subject,
-              ns.wf('assignee'),
-              devs,
-              opts,
-              store,
-              function (ok, body) {
-                if (ok) setModifiedDate(store, kb, store)
-                else console.log('Failed to change assignee:\n' + body)
-              }
-            )
-          )
-        }
-      })
-
-      donePredicate(ns.wf('assignee'))
-
-      if (getOption(tracker, 'allowSubIssues')) {
-        // Sub issues
-        outliner.appendPropertyTRs(issueDiv, plist, false, function (pred, inverse) {
-          if (!inverse && pred.sameTerm(WF('dependent'))) return true
-          return false
-        })
-
-        // Super issues
-        outliner.appendPropertyTRs(issueDiv, qlist, true, function (pred, inverse) {
-          if (inverse && pred.sameTerm(WF('dependent'))) return true
-          return false
-        })
-        donePredicate(WF('dependent'))
-      }
-
-      issueDiv.appendChild(dom.createElement('br'))
-
-      if (getOption(tracker, 'allowSubIssues')) {
-        var b = dom.createElement('button')
-        b.setAttribute('type', 'button')
-        issueDiv.appendChild(b)
-        var classLabel = UI.utils.label(states)
-        b.innerHTML = 'New sub ' + classLabel
-        b.setAttribute('style', 'float: right; margin: 0.5em 1em;')
-        b.addEventListener(
-          'click',
-          function (_event) {
-            hideOverlay()
-            div.appendChild(newIssueForm(dom, kb, tracker, subject, b))
-          },
-          false
-        )
-      }
-
-      // Extras are stored centrally to the tracker
-      var extrasForm = kb.any(tracker, ns.wf('extrasEntryForm'))
-      if (extrasForm) {
-        UI.widgets.appendForm(
-          dom,
-          issueDiv,
-          {},
-          subject,
-          extrasForm,
-          stateStore,
-          complainIfBad
-        )
-        var fields = kb.each(extrasForm, ns.ui('part'))
-        fields.map(function (field) {
-          var p = kb.any(field, ns.ui('property'))
-          if (p) {
-            donePredicate(p) // Check that one off
-          }
-        })
-      }
-
-      //   Comment/discussion area
-
-      var spacer = issueDiv.appendChild(dom.createElement('tr'))
-      spacer.setAttribute('style', 'height: 1em') // spacer and placeHolder
-
-      var template = kb.anyValue(tracker, WF('issueURITemplate'))
-      /*
-      var chatDocURITemplate = kb.anyValue(tracker, WF('chatDocURITemplate')) // relaive to issue
-      var chat
-      if (chatDocURITemplate) {
-        let template = $rdf.uri.join(chatDocURITemplate, issue.uri) // Template is relative to issue
-        chat = kb.sym(expandTemplate(template))
-      } else
-      */
-      var messageStore
-      if (template) {
-        messageStore = subject.doc() // for now. Could go deeper
-      } else {
-        messageStore = kb.any(tracker, ns.wf('messageStore'))
-        if (!messageStore) messageStore = kb.any(tracker, WF('stateStore'))
-        kb.sym(messageStore.uri + '#' + 'Chat' + timestring()) // var chat =
-      }
-
-      kb.fetcher.nowOrWhenFetched(messageStore, function (ok, body, _xhr) {
-        if (!ok) {
-          var er = dom.createElement('p')
-          er.textContent = body // @@ use nice error message
-          issueDiv.insertBefore(er, spacer)
-        } else {
-          var discussion = UI.messageArea(dom, kb, subject, messageStore)
-          issueDiv.insertBefore(discussion, spacer)
-        }
-      })
-      donePredicate(ns.wf('message'))
-
-      // Draggable attachment list
-      UI.widgets.attachmentList(dom, subject, issueDiv, {
-        doc: stateStore,
-        promptIcon: UI.icons.iconBase + 'noun_25830.svg',
-        predicate: ns.wf('attachment')
-      })
-      donePredicate(ns.wf('attachment'))
-
-      outliner.appendPropertyTRs(issueDiv, plist, false, function (pred, _inverse) {
-        return !(pred.uri in predicateURIsDone)
-      })
-      outliner.appendPropertyTRs(issueDiv, qlist, true, function (pred, _inverse) {
-        return !(pred.uri in predicateURIsDone)
-      })
-
-      var refreshButton = dom.createElement('button')
-      refreshButton.textContent = 'refresh'
-      refreshButton.addEventListener(
-        'click',
-        function (_event) {
-          context.session.store.fetcher.unload(messageStore)
-          context.session.store.fetcher.nowOrWhenFetched(
-            messageStore.uri,
-            undefined,
-            function (ok, body) {
-              if (!ok) {
-                console.log('Cant refresh messages' + body)
-              } else {
-                refreshTree(issueDiv)
-                // syncMessages(subject, messageTable)
-              }
-            }
-          )
-        },
-        false
-      )
-      refreshButton.setAttribute('style', 'margin: 0.5em 1em;')
-      issueDiv.appendChild(refreshButton)
-    } // singleIssueUI
-
+    const updater = kb.updater
+    var t = kb.findTypeURIs(subject)
+    var tracker
     // Whatever we are rendering, lets load the ontology
     var flowOntology = UI.ns.wf('').doc()
     if (!kb.holds(undefined, undefined, undefined, flowOntology)) {
@@ -832,7 +465,6 @@ module.exports = {
       tracker = kb.any(subject, WF('tracker'))
       if (!tracker) throw new Error('This issue ' + subject + 'has no tracker')
 
-      var trackerURI = tracker.uri.split('#')[0]
       // Much data is in the tracker instance, so wait for the data from it
 
       context.session.store.fetcher
@@ -848,24 +480,24 @@ module.exports = {
                   'Failed to load state ' + stateStore + ' ' + body
                 )
               }
-              singleIssueUI(subject, div)
+              paneDiv.appendChild(renderIssue(subject, context))
               updater.addDownstreamChangeListener(stateStore, function () {
-                refreshTree(div)
+                UI.widgets.refreshTree(paneDiv)
               }) // Live update
             }
           )
         })
         .catch(err => {
-          const msg = 'Failed to load config ' + trackerURI + ' ' + err
+          const msg = 'Failed to load config ' + tracker.doc() + ' ' + err
           return complain(msg)
         })
       context.session.store.fetcher.nowOrWhenFetched(
-        trackerURI,
+        tracker.doc(),
         subject,
         function drawIssuePane1 (ok, body) {
           if (!ok) {
             return console.log(
-              'Failed to load config ' + trackerURI + ' ' + body
+              'Failed to load config ' + tracker.doc() + ' ' + body
             )
           }
         }
@@ -876,6 +508,7 @@ module.exports = {
       //          Render a Tracker instance
       //
     } else if (t['http://www.w3.org/2005/01/wf/flow#Tracker']) {
+      // renderTracker()
       renderTracker()
     } else {
       console.log(
@@ -886,37 +519,40 @@ module.exports = {
     }
 
     var loginOutButton
-    const overlay = div.appendChild(dom.createElement('div'))
+    const overlay = paneDiv.appendChild(dom.createElement('div'))
     overlay.setAttribute(
       'style',
       ' position: fixed; top: 1.51em; right: 2em; left: 2em; border: 0.1em grey;'
     )
-    const overlayPane = overlay.appendChild(dom.createElement('div')) // avoid stomping on style by pane
+    // var overlayPane = null // overlay.appendChild(dom.createElement('div')) // avoid stomping on style by pane
 
     UI.authn.checkUser().then(webId => {
       if (webId) {
         console.log('Web ID set already: ' + webId)
-        me = webId
+        context.me = webId
         // @@ enable things
         return
       }
 
       loginOutButton = UI.authn.loginStatusBox(dom, webIdUri => {
         if (webIdUri) {
-          me = kb.sym(webIdUri)
+          context.me = kb.sym(webIdUri)
           console.log('Web ID set from login button: ' + webIdUri)
-          div.removeChild(loginOutButton)
+          paneDiv.removeChild(loginOutButton)
           // enable things
         } else {
-          me = null
+          context.me = null
         }
       })
 
       loginOutButton.setAttribute('style', 'margin: 0.5em 1em;')
-      div.appendChild(loginOutButton)
+      paneDiv.appendChild(loginOutButton)
+      if (!context.statusArea) {
+        context.statusArea = paneDiv.appendChild(dom.createElement('div'))
+      }
     })
 
-    return div
+    return paneDiv
   }
 }
 
