@@ -13,7 +13,7 @@
 import * as UI from 'solid-ui'
 const kb = UI.store
 
-export function renderBoard (dom, query, columnValues, renderItem, vx, vvalue,
+export function board (dom, query, columnValues, renderItem, vx, vvalue,
   options, whenDone) {
   const board = dom.createElement('div')
   const table = dom.createElement('table')
@@ -91,15 +91,15 @@ export function renderBoard (dom, query, columnValues, renderItem, vx, vvalue,
   }
 
   var addCellFromBindings = function (bindings) {
-    const x = bindings[options.vx]
+    const x = bindings[vx]
     const value = bindings[vvalue]
 
     var colNo = columnNumberFor(x)
     var col = mainRow.children[colNo + 1] // number of Y axis headings
     // Need to see if cell is aready there
 
-    const renderItem = options.renderItem || defaultRenderItem
-    const itemElement = renderItem(x, value)
+    const actualRenderItem = renderItem || defaultRenderItem
+    const itemElement = actualRenderItem(x, value)
     itemElement.subject = value
     col.appendChild(itemElement) // @@ should refresh
   }

@@ -20,7 +20,7 @@ const $rdf = UI.rdf
 const ns = UI.ns
 const kb = UI.store
 
-module.exports = {
+export default {
   icon: UI.icons.iconBase + 'noun_97839.svg', // was: js/panes/issue/tbl-bug-22.png
 
   name: 'issue',
@@ -246,34 +246,28 @@ module.exports = {
           oneOpt.add(v.issue, prop, v[vname])
         }
       }
-
+      // These are states we will show by default: the open issues.
       var selectedStates = {}
-      var possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
+      var columnValues = []
+      var possible = kb.each(undefined, ns.rdfs('subClassOf'), states) // @@ Use ordered not unordered
       possible.map(function (s) {
         if (
           kb.holds(s, ns.rdfs('subClassOf'), WF('Open')) ||
           s.sameTerm(WF('Open'))
         ) {
           selectedStates[s.uri] = true
+          columnValues.push(s)
           // console.log('on '+s.uri); // @@
         }
       })
 
-      function exposeThisOverlay (href) {
-        const subject = $rdf.sym(href)
-        exposeOverlay(subject)
+      function whenDone () {
+        alert('board finsihed')
       }
-
-      var tableDiv = board(dom, {
-        query: query,
-        keyVariable: '?issue', // Charactersic of row
-        hints: {
-          '?issue': { linkFunction: exposeThisOverlay, label: 'Title' },
-          '?created': { cellFormat: 'shortDate' },
-          '?state': { initialSelection: selectedStates, label: 'Status' }
-        }
-      })
-      return tableDiv
+      const options = { }
+      // const columnValues = states // @@ optionally selected states would work
+      const boardDiv = board(dom, query, columnValues, UI.widgets.personTR, selectedStates, v.state, v.issue, options, whenDone)
+      return boardDiv
     }
 
     function renderTable (tracker) {
@@ -348,11 +342,13 @@ module.exports = {
     /* Rander tabs with both views
     */
     function renderTabsTableAndBoard () {
-      function renderMain (object) {
+      function renderMain (ele, object) {
         if (object === 'board') {
-          return renderBoard(tracker)
+          ele.appendChild(renderBoard(tracker))
+        } else if (object === 'table') {
+          ele.appendChild(renderTable(tracker))
         } else {
-          return renderTable(tracker)
+          throw new Error('Execpected tab type: ' + object)
         }
       }
       const options = {

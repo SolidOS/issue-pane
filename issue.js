@@ -246,7 +246,7 @@ export function renderIssue (issue, context) {
     issueDiv.appendChild(dom.createElement('h4')).textContent = 'Super Issues'
     const listOfSupers = issueDiv.appendChild(dom.createElement('div'))
     listOfSupers.refresh = function () {
-      UI.utils.syncTableToArrayReOrdered(listOfSupers, kb.each(issue, ns.wf('dependent')), UI.widgets.personTR)
+      UI.utils.syncTableToArrayReOrdered(listOfSupers, kb.each(null, ns.wf('dependent'), issue), UI.widgets.personTR)
     }
     listOfSupers.refresh()
 
