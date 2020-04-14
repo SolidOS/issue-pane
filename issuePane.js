@@ -1,12 +1,7 @@
 /*   Issue Tracker Pane
  **
- **  This outline pane allows a user to interact with an issue,
+ **  This solid view allows a user to interact with an issue tracker, or individual issue,
  ** to change its state according to an ontology, comment on it, etc.
- **
- **
- ** I am using in places single quotes strings like 'this'
- ** where internationalization ("i18n") is not a problem, and double quoted
- ** like "this" where the string is seen by the user and so I18n is an issue.
  **
  */
 
