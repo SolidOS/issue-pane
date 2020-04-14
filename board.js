@@ -12,105 +12,103 @@
 
 import * as UI from 'solid-ui'
 const kb = UI.store
+const ns = UI.ns
+const $rdf = UI.rdf
 
 export function board (dom, query, columnValues, renderItem, vx, vvalue,
-  options, whenDone) {
+  options) {
   const board = dom.createElement('div')
-  const table = dom.createElement('table')
-  const headerRow = dom.createElement('tr')
+  board.style = 'width: 100%;'
+  board.style.margin = '1em'
+  const table = board.appendChild(dom.createElement('table'))
+  table.style = 'width: 100%;'
+  table.style.borderCollapse = 'collapse'
+
+  const headerRow = table.appendChild(dom.createElement('tr'))
+  const mainRow = table.appendChild(dom.createElement('tr'))
   columnValues.forEach(x => {
     const cell = headerRow.appendChild(dom.createElement('th'))
+    cell.textContent = UI.utils.label(x, true) // Initial capital
     cell.subject = x
-  })
-  var columns = columnValues.map(v => {
-    return v // @@ a RDF object ?
-  })
+    cell.style = 'margin: 0.3em; padding: 0.5em 1em; font-treatment: bold; font-size: 120%;'
 
-  const mainRow = table.appendChild(dom.createElement('tr'))
+    const column = mainRow.appendChild(dom.createElement('td'))
+    column.subject = x
+    column.style = 'border: 0.01em solid white; padding: 0.1em; '
+
+    function droppedURIHandler (uris) {
+      uris.forEach(function (u) {
+        console.log('Dropped on column: ' + u)
+        const item = kb.sym(u)
+        options.columnDropHandler(item, x)
+      })
+    }
+
+    if (options.columnDropHandler) {
+      UI.widgets.makeDropTarget(column, droppedURIHandler)
+    }
+  })
 
   /* Each item on the board
-   * nowmallyApp will override this
+   * normally App will override this
   */
-  function defaultRenderItem (item) {
-    const table = dom.createElement('table')
-    UI.widgets.personTR(item)
+  function defaultRenderItem (item, category) {
+    const card = dom.createElement('div')
+    const table = card.appendChild(dom.createElement('table'))
+    const classes = kb.each(item, ns.rdf('type'))
+    const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => c)
+
+    table.appendChild(UI.widgets.personTR(dom, null, item))
     table.subject = item
-    return table
+    table.style = 'margin: 1em;' // @@ use style.js
+    const backgroundColor = catColors[0] || kb.any(category, ns.ui('backgroundColor'))
+    card.style.backgroundColor = backgroundColor ? backgroundColor.value : '#fff'
+    return card
   }
 
-  function markOldCells () {
-    mainRow.children.forEach(col => {
-      col.children.forEach(ele => { ele.old = true })
-    })
+  function _markOldCells () {
+    for (var col = mainRow.firstChild; col; col = col.nextSibling) {
+      for (var card = col.firstChild; card; card = card.nextSibling) {
+        card.old = true
+      }
+    }
   }
 
-  function clearOldCells () {
-    mainRow.children.forEach(col => {
-      for (let k = col.children.length - 1; k; k--) {
-        if (col.children[k].old) {
-          col.removeChild(col.children[k])
+  function _clearOldCells () {
+    for (var col = mainRow.firstChild; col; col = col.nextSibling) {
+      for (var card = col.firstChild; card; card = card.nextSibling) {
+        if (card.old) {
+          col.removeChild(card)
         }
       }
-    })
+    }
   }
 
-  function columnNumberFor (x1) {
-    var xNT = x1.toNT() // xNT is a NT string
-    var col = null
-    // These are data columns (not headings)
-    for (var i = 0; i < columns.length; i++) {
-      if (columns[i] === xNT) {
-        return i
-      }
-
-      if (
-        (xNT > columns[i] && options.xDecreasing) ||
-        (xNT < columns[i] && !options.xDecreasing)
-      ) {
-        columns = columns
-          .slice(0, i)
-          .concat([xNT])
-          .concat(columns.slice(i))
-        col = i
-        break
-      }
-    }
-
-    if (col === null) {
-      col = columns.length
-      columns.push(xNT)
-      const td = mainRow.appendChiuld(dom.createElement('tr'))
-      td.dataValueNT = xNT
-    }
-    return col
+  function sortedBy (values, predicate, defaultSortValue, reverse) {
+    var toBeSorted = values.map(x => [kb.any(x, predicate) || defaultSortValue, x])
+    toBeSorted.sort()
+    if (reverse) toBeSorted.reverse() // @@ check
+    return toBeSorted.map(pair => pair[1])
   }
-
   board.refresh = function () {
-    markOldCells()
-    kb.query(query, addCellFromBindings, undefined, clearOldCells)
-  }
-
-  var addCellFromBindings = function (bindings) {
-    const x = bindings[vx]
-    const value = bindings[vvalue]
-
-    var colNo = columnNumberFor(x)
-    var col = mainRow.children[colNo + 1] // number of Y axis headings
-    // Need to see if cell is aready there
-
-    const actualRenderItem = renderItem || defaultRenderItem
-    const itemElement = actualRenderItem(x, value)
-    itemElement.subject = value
-    col.appendChild(itemElement) // @@ should refresh
-  }
-
-  if (options.set_x) {
-    for (let k = 0; k < options.set_x.length; k++) {
-      columnNumberFor(options.set_x[k])
+    const now = new $rdf.Literal(new Date())
+    const renderItem = options.renderItem || defaultRenderItem
+    function localRenderItem (subject) {
+      const ele = renderItem(subject)
+      UI.widgets.makeDraggable(ele, subject)
+      ele.subject = subject
+      return ele
+    }
+    for (var col = mainRow.firstChild; col; col = col.nextSibling) {
+      const category = col.subject
+      const items = kb.each(null, ns.rdf('type'), category)
+      const sortBy = options.sortBy || ns.dct('created')
+      const sortedItems = sortedBy(items, sortBy, now, true)
+      UI.utils.syncTableToArrayReOrdered(col, sortedItems, localRenderItem)
     }
   }
 
-  kb.query(query, addCellFromBindings, undefined, whenDone) // Populate the board
-
+  // kb.query(query, addCellFromBindings, undefined, whenDone) // Populate the board
+  board.refresh()
   return board
 }

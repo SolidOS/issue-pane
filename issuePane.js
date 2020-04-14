@@ -28,8 +28,7 @@ export default {
   audience: [ns.solid('PowerUser')],
 
   // Does the subject deserve an issue pane?
-  label: function (subject, context) {
-    var kb = context.session.store
+  label: function (subject, _context) {
     var t = kb.findTypeURIs(subject)
     if (
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
@@ -43,12 +42,6 @@ export default {
 
   render: function (subject, context) {
     const dom = context.dom
-    // const kb = context.session.store
-    var ns = UI.ns
-    var WF = $rdf.Namespace('http://www.w3.org/2005/01/wf/flow#')
-    // var DC = $rdf.Namespace('http://purl.org/dc/elements/1.1/')
-    // var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
-    // var outliner = context.getOutliner(dom)
 
     var paneDiv = dom.createElement('div')
     paneDiv.setAttribute('class', 'issuePane')
@@ -103,7 +96,7 @@ export default {
           }
         }
 
-        var stateStore = kb.any(tracker, WF('stateStore'))
+        var stateStore = kb.any(tracker, ns.wf('stateStore'))
         var newStore = kb.sym(base + 'store.ttl')
 
         var here = thisTracker.doc()
@@ -196,22 +189,13 @@ export default {
 
     // /////////////////////////////////////////////////////////////////////////////
 
-    // Refresh the DOM tree - now in UI.widgets
-
-    function refreshTree (root) {
-      if (root.refresh) {
-        root.refresh()
-        return
-      }
-      for (var i = 0; i < root.children.length; i++) {
-        refreshTree(root.children[i])
-      }
-    }
-
+    /** /////////////////////////// Board
+    */
     function renderBoard (tracker) {
-      const states = kb.any(subject, WF('issueClass'))
+      const states = kb.any(subject, ns.wf('issueClass'))
+      var cats = kb.any(tracker, ns.wf('issueCategory')) // pick one @@
+
       var query = new $rdf.Query(UI.utils.label(subject))
-      var cats = [kb.any(tracker, WF('issueCategory'))] // pick one @@
       var vars = ['issue', 'state', 'created']
       for (let i = 0; i < cats.length; i++) {
         vars.push('_cat_' + i)
@@ -220,7 +204,7 @@ export default {
       vars.map(function (x) {
         query.vars.push((v[x] = $rdf.variable(x)))
       })
-      query.pat.add(v.issue, WF('tracker'), tracker)
+      query.pat.add(v.issue, ns.wf('tracker'), tracker)
       query.pat.add(v.issue, ns.dct('created'), v.created)
       query.pat.add(v.issue, ns.rdf('type'), v.state)
       query.pat.add(v.state, ns.rdfs('subClassOf'), states)
@@ -231,7 +215,7 @@ export default {
 
       query.pat.optional = []
 
-      var propertyList = kb.any(tracker, WF('propertyList')) // List of extra properties
+      var propertyList = kb.any(tracker, ns.wf('propertyList')) // List of extra properties
       if (propertyList) {
         var properties = propertyList.elements
         for (var p = 0; p < properties.length; p++) {
@@ -252,28 +236,87 @@ export default {
       var possible = kb.each(undefined, ns.rdfs('subClassOf'), states) // @@ Use ordered not unordered
       possible.map(function (s) {
         if (
-          kb.holds(s, ns.rdfs('subClassOf'), WF('Open')) ||
-          s.sameTerm(WF('Open'))
+          kb.holds(s, ns.rdfs('subClassOf'), ns.wf('Open')) ||
+          s.sameTerm(ns.wf('Open'))
         ) {
           selectedStates[s.uri] = true
           columnValues.push(s)
-          // console.log('on '+s.uri); // @@
         }
       })
 
-      function whenDone () {
-        alert('board finsihed')
+      function getState (issue) {
+        const types = kb.each(issue, ns.rdf('type'))
+          .filter(ty => kb.holds(ty, ns.rdfs('subClassOf'), states))
+        if (types.length !== 1) {
+          throw new Error('Issue must have one type as state: ' + types.length)
+        }
+        return types[0]
       }
-      const options = { }
+
+      async function columnDropHandler (issue, newState) {
+        const currentState = getState(issue)
+        const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
+        const stateStore = kb.any(tracker, ns.wf('stateStore'))
+
+        if (newState.sameTerm(currentState)) {
+          alert('Same state ' + UI.utils.label(currentState)) // @@ remove
+          return
+        }
+        try {
+          await kb.updater.update(
+            [$rdf.st(issue, ns.rdf('type'), currentState, stateStore)],
+            [$rdf.st(issue, ns.rdf('type'), newState, stateStore)])
+        } catch (err) {
+          UI.widgets.complain(context, 'Unable to change issue state: ' + err)
+        }
+        boardDiv.refresh() // reorganize board to match the new reality
+      }
+
+      function renderCard (issue) {
+        const state = getState(issue)
+        const card = dom.createElement('div')
+        const table = card.appendChild(dom.createElement('table'))
+        const options = { draggable: false } // Let the baord make th ewhole card draggable
+        table.appendChild(UI.widgets.personTR(dom, null, issue, options))
+        table.subject = issue
+        card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
+
+        // Add a button for viewing the whole issue in overlay
+        const buttonsCell = card.firstChild.firstChild.children[2] // right hand part of card
+        buttonsCell.appendChild(UI.widgets.button(UI.icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
+          exposeOverlay(issue)
+        }))
+
+        function getBackgroundColor () {
+          // const cats = kb.each(tracker, ns.wf('issueCategory'))  Possibly, find expolictly subclasses of cat
+          const classes = kb.each(issue, ns.rdf('type'))
+          const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
+
+          if (catColors.length) return catColors[0].value // pick one
+          var color
+          if (state && (color = kb.any(state, ns.ui('backgroundColor')))) {
+            return color.value
+          }
+          return 'white'
+        }
+        card.style.backgroundColor = getBackgroundColor()
+        card.style.maxWidth = '24em' // @@ User adjustable??
+        return card
+      }
+
+      var options = { columnDropHandler }
+      options.sortBy = ns.dct('created')
       // const columnValues = states // @@ optionally selected states would work
-      const boardDiv = board(dom, query, columnValues, UI.widgets.personTR, selectedStates, v.state, v.issue, options, whenDone)
+      const boardDiv = board(dom, query, columnValues, renderCard, v.state, v.issue, options)
       return boardDiv
     }
 
+    /** ////////////// Table
+    */
     function renderTable (tracker) {
-      const states = kb.any(subject, WF('issueClass'))
+      const states = kb.any(subject, ns.wf('issueClass'))
       var query = new $rdf.Query(UI.utils.label(subject))
-      var cats = kb.each(tracker, WF('issueCategory')) // zero or more
+      var cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
       var vars = ['issue', 'state', 'created']
       for (let i = 0; i < cats.length; i++) {
         vars.push('_cat_' + i)
@@ -282,7 +325,7 @@ export default {
       vars.map(function (x) {
         query.vars.push((v[x] = $rdf.variable(x)))
       })
-      query.pat.add(v.issue, WF('tracker'), tracker)
+      query.pat.add(v.issue, ns.wf('tracker'), tracker)
       // query.pat.add(v['issue'], ns.dc('title'), v['title'])
       query.pat.add(v.issue, ns.dct('created'), v.created)
       query.pat.add(v.issue, ns.rdf('type'), v.state)
@@ -294,7 +337,7 @@ export default {
 
       query.pat.optional = []
 
-      var propertyList = kb.any(tracker, WF('propertyList')) // List of extra properties
+      var propertyList = kb.any(tracker, ns.wf('propertyList')) // List of extra properties
       if (propertyList) {
         var properties = propertyList.elements
         for (var p = 0; p < properties.length; p++) {
@@ -314,8 +357,8 @@ export default {
       var possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
       possible.map(function (s) {
         if (
-          kb.holds(s, ns.rdfs('subClassOf'), WF('Open')) ||
-          s.sameTerm(WF('Open'))
+          kb.holds(s, ns.rdfs('subClassOf'), ns.wf('Open')) ||
+          s.sameTerm(ns.wf('Open'))
         ) {
           selectedStates[s.uri] = true
           // console.log('on '+s.uri); // @@
@@ -343,6 +386,7 @@ export default {
     */
     function renderTabsTableAndBoard () {
       function renderMain (ele, object) {
+        ele.innerHTML = '' // Clear out "loading message"
         if (object === 'board') {
           ele.appendChild(renderBoard(tracker))
         } else if (object === 'table') {
@@ -367,9 +411,9 @@ export default {
       }
       tracker = subject
 
-      var states = kb.any(subject, WF('issueClass'))
+      var states = kb.any(subject, ns.wf('issueClass'))
       if (!states) throw new Error('This tracker has no issueClass')
-      var stateStore = kb.any(subject, WF('stateStore'))
+      var stateStore = kb.any(subject, ns.wf('stateStore'))
       if (!stateStore) throw new Error('This tracker has no stateStore')
 
       UI.authn.checkUser() // kick off async operation
@@ -398,7 +442,7 @@ export default {
         'click',
         function (_event) {
           b.setAttribute('disabled', 'true')
-          container.appendChild(newIssueForm(dom, kb, tracker, null, b, showNewIssue))
+          container.appendChild(newIssueForm(dom, kb, tracker, null, showNewIssue))
         },
         false
       )
@@ -426,7 +470,7 @@ export default {
                   alert(err)
                   return
                 }
-                refreshTree(tableDiv)
+                UI.widgets.refreshTree(tableDiv)
               },
               false
             )
@@ -458,7 +502,7 @@ export default {
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
       kb.holds(subject, UI.ns.wf('tracker'))
     ) {
-      tracker = kb.any(subject, WF('tracker'))
+      tracker = kb.any(subject, ns.wf('tracker'))
       if (!tracker) throw new Error('This issue ' + subject + 'has no tracker')
 
       // Much data is in the tracker instance, so wait for the data from it
@@ -466,7 +510,7 @@ export default {
       context.session.store.fetcher
         .load(tracker.doc())
         .then(function (_xhrs) {
-          var stateStore = kb.any(tracker, WF('stateStore'))
+          var stateStore = kb.any(tracker, ns.wf('stateStore'))
           context.session.store.fetcher.nowOrWhenFetched(
             stateStore,
             subject,
