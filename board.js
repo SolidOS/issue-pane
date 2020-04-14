@@ -92,9 +92,9 @@ export function board (dom, query, columnValues, renderItem, vx, vvalue,
   }
   board.refresh = function () {
     const now = new $rdf.Literal(new Date())
-    const renderItem = options.renderItem || defaultRenderItem
+    const actualRenderItem = renderItem || options.renderItem || defaultRenderItem
     function localRenderItem (subject) {
-      const ele = renderItem(subject)
+      const ele = actualRenderItem(subject)
       UI.widgets.makeDraggable(ele, subject)
       ele.subject = subject
       return ele
