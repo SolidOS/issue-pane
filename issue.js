@@ -58,7 +58,7 @@ export function renderIssueCard (issue, context) {
   // Add a button for viewing the whole issue in overlay
   const buttonsCell = card.firstChild.firstChild.children[2] // right hand part of card
   const editButton = UI.widgets.button(dom, UI.icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
-    exposeOverlay(issue)
+    exposeOverlay(issue, context)
   })
   editButton.style.backgroundColor = backgroundColor // Override white from style sheet
   const editButtonImage = editButton.firstChild
@@ -73,8 +73,10 @@ export function renderIssueCard (issue, context) {
       } catch (err) {
         complain(`Unable to delete issue: ${err}`, context)
       }
-      UI.widgets.refreshTree(context.paneDiv) // Should delete
-      complain('DELETED OK', context)
+      console.log('User deleted issue ' + issue)
+      card.parentNode.removeChild(card) // refresh doesn't work yet because it is not passed though tabs so short cut
+      UI.widgets.refreshTree(context.paneDiv) // Should delete the card if nec when tabs pass it though
+      // complain('DELETED OK', context)
     })
     buttonsCell.appendChild(deleteButton)
   }
@@ -92,11 +94,11 @@ export function exposeOverlay (subject, context) {
   const overlay = context.overlay
   overlay.innerHTML = '' // clear existing
   const button = overlay.appendChild(
-    UI.widgets.button(context.dom, UI.icons.iconBase + 'noun_1180156.svg', 'close'), hideOverlay)
+    UI.widgets.button(context.dom, UI.icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
   button.style.float = 'right'
   overlay.style.visibility = 'visible'
   overlay.appendChild(renderIssue(subject, context))
-  overlay.firstChild.style.overflow = 'scroll'
+  overlay.firstChild.style.overflow = 'auto' // was scroll
 }
 
 export function renderIssue (issue, context) {

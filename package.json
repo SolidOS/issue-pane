@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/solid/issue-pane",
   "dependencies": {
+    "rdflib": "^1.1.0",
     "solid-ui": "^2.0.0"
   },
   "devDependencies": {

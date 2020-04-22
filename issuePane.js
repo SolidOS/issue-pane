@@ -15,6 +15,7 @@ const $rdf = UI.rdf
 const ns = UI.ns
 const kb = UI.store
 
+const OVERFLOW_STYLE = 'position: fixed; top: 1.51em; right: 2em; left: 2em; bottom:1.5em; border: 0.1em grey; overflow: scroll;'
 export default {
   icon: UI.icons.iconBase + 'noun_97839.svg', // was: js/panes/issue/tbl-bug-22.png
 
@@ -123,8 +124,11 @@ export default {
 
       var options = { columnDropHandler }
       options.sortBy = ns.dct('created')
+      function localRenderIssueCard (issue) {
+        return renderIssueCard(issue, context)
+      }
       // const columnValues = states // @@ optionally selected states would work
-      const boardDiv = board(dom, query, columnValues, renderIssueCard, v.state, v.issue, options)
+      const boardDiv = board(dom, query, columnValues, localRenderIssueCard, v.state, v.issue, options)
       return boardDiv
     }
 
@@ -184,7 +188,7 @@ export default {
 
       function exposeThisOverlay (href) {
         const subject = $rdf.sym(href)
-        exposeOverlay(subject)
+        exposeOverlay(subject, context)
       }
 
       var tableDiv = UI.table(dom, {
@@ -225,7 +229,7 @@ export default {
     function renderTracker () {
       function showNewIssue (issue) {
         UI.widgets.refreshTree(paneDiv)
-        exposeOverlay(issue)
+        exposeOverlay(issue, context)
         b.setAttribute('disabled', false)
       }
       tracker = subject
@@ -380,10 +384,9 @@ export default {
     var loginOutButton
     const overlay = paneDiv.appendChild(dom.createElement('div'))
     context.overlay = overlay
-    overlay.setAttribute(
-      'style',
-      ' position: fixed; top: 1.51em; right: 2em; left: 2em; border: 0.1em grey;'
-    )
+    overlay.style = OVERFLOW_STYLE
+    overlay.style.visibility = 'hidden'
+
     // var overlayPane = null // overlay.appendChild(dom.createElement('div')) // avoid stomping on style by pane
 
     UI.authn.checkUser().then(webId => {

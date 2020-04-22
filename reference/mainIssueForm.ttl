@@ -1,0 +1,25 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix ui: <http://www.w3.org/ns/ui#>.
+@prefix wf: <http://www.w3.org/2005/01/wf/flow#>.
+@prefix : <#>.
+
+wf:Task
+    ui:creationForm :coreIsueForm .
+
+
+:coreIsueForm
+    <http://purl.org/dc/elements/1.1/title> "Core issue data" ;
+    a ui:Form ;
+    ui:parts ( :titleField :descriptionField ) .
+
+:titleField  a <http://www.w3.org/ns/ui#SingleLineTextField> ;
+        ui:label "Title";
+        <http://www.w3.org/ns/ui#maxLength> "128" ;
+        <http://www.w3.org/ns/ui#property> <http://www.w3.org/2006/vcard/ns#fn> ;
+        <http://www.w3.org/ns/ui#size> "40" .
+
+
+:descriptionField  a <http://www.w3.org/ns/ui#MultiLineTextField> ;
+        ui:label "Description";
+        <http://www.w3.org/ns/ui#property> wf:description ;
+        <http://www.w3.org/ns/ui#size> "40" .
