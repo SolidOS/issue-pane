@@ -52,7 +52,7 @@ export default {
     */
     function renderBoard (tracker) {
       const states = kb.any(tracker, ns.wf('issueClass'))
-      var cats = kb.any(tracker, ns.wf('issueCategory')) // pick one @@
+      var cats = kb.each(tracker, ns.wf('issueCategory')) // pick one @@
 
       var query = new $rdf.Query(UI.utils.label(subject))
       var vars = ['issue', 'state', 'created']
@@ -124,6 +124,7 @@ export default {
 
       var options = { columnDropHandler }
       options.sortBy = ns.dct('created')
+      options.sortReverse = true
       function localRenderIssueCard (issue) {
         return renderIssueCard(issue, context)
       }
@@ -194,6 +195,8 @@ export default {
       var tableDiv = UI.table(dom, {
         query: query,
         keyVariable: '?issue', // Charactersic of row
+        sortBy: '?created', // By default, sort by date
+        sortReverse: true, //   most recent at the top
         hints: {
           '?issue': { linkFunction: exposeThisOverlay, label: 'Title' },
           '?created': { cellFormat: 'shortDate' },
