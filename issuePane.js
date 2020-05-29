@@ -137,9 +137,9 @@ export default {
     */
     function renderTable (tracker) {
       const states = kb.any(subject, ns.wf('issueClass'))
-      var query = new $rdf.Query(UI.utils.label(subject))
       var cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
       var vars = ['issue', 'state', 'created']
+      var query = new $rdf.Query(UI.utils.label(subject))
       for (let i = 0; i < cats.length; i++) {
         vars.push('_cat_' + i)
       }

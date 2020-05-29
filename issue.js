@@ -1,17 +1,16 @@
 // All the UI for a single issue, without store load or listening for changes
 //
-import * as UI from 'solid-ui'
+import { authn, icons, messageArea, ns, rdf, store, style, utils, widgets } from 'solid-ui'
 import { newIssueForm } from './newIssue'
 
-const $rdf = UI.rdf
-const ns = UI.ns
-const kb = UI.store
+const $rdf = rdf
+const kb = store
 
 const SET_MODIFIED_DATES = false
 
 function complain (message, context) {
   console.warn(message)
-  context.paneDiv.appendChild(UI.widgets.errorMessageBlock(context.dom, message))
+  context.paneDiv.appendChild(widgets.errorMessageBlock(context.dom, message))
 }
 
 export function getState (issue) {
@@ -49,15 +48,15 @@ export function renderIssueCard (issue, context) {
   const table = card.appendChild(dom.createElement('table'))
   table.style.width = '100%'
   const options = { draggable: false } // Let the baord make th ewhole card draggable
-  table.appendChild(UI.widgets.personTR(dom, null, issue, options))
+  table.appendChild(widgets.personTR(dom, null, issue, options))
   table.subject = issue
   card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
 
   const img = card.firstChild.firstChild.firstChild.firstChild // div/table/tr/td/img
-  img.setAttribute('src', UI.icons.iconBase + 'noun_Danger_1259514.svg') // override
+  img.setAttribute('src', icons.iconBase + 'noun_Danger_1259514.svg') // override
   // Add a button for viewing the whole issue in overlay
   const buttonsCell = card.firstChild.firstChild.children[2] // right hand part of card
-  const editButton = UI.widgets.button(dom, UI.icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
+  const editButton = widgets.button(dom, icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
     exposeOverlay(issue, context)
   })
   editButton.style.backgroundColor = backgroundColor // Override white from style sheet
@@ -67,7 +66,7 @@ export function renderIssueCard (issue, context) {
 
   // If uncategorized, shortcut to delete issue
   if (uncategorized) {
-    const deleteButton = UI.widgets.deleteButtonWithCheck(dom, buttonsCell, 'issue', async function () { // noun?
+    const deleteButton = widgets.deleteButtonWithCheck(dom, buttonsCell, 'issue', async function () { // noun?
       try {
         await kb.updater.update(kb.connectedStatements(issue))
       } catch (err) {
@@ -75,7 +74,7 @@ export function renderIssueCard (issue, context) {
       }
       console.log('User deleted issue ' + issue)
       card.parentNode.removeChild(card) // refresh doesn't work yet because it is not passed though tabs so short cut
-      UI.widgets.refreshTree(context.paneDiv) // Should delete the card if nec when tabs pass it though
+      widgets.refreshTree(context.paneDiv) // Should delete the card if nec when tabs pass it though
       // complain('DELETED OK', context)
     })
     buttonsCell.appendChild(deleteButton)
@@ -94,7 +93,7 @@ export function exposeOverlay (subject, context) {
   const overlay = context.overlay
   overlay.innerHTML = '' // clear existing
   const button = overlay.appendChild(
-    UI.widgets.button(context.dom, UI.icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
+    widgets.button(context.dom, icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
   button.style.float = 'right'
   overlay.style.visibility = 'visible'
   overlay.appendChild(renderIssue(subject, context))
@@ -132,7 +131,7 @@ export function renderIssue (issue, context) {
 
   function complain (message) {
     console.warn(message)
-    issueDiv.appendChild(UI.widgets.errorMessageBlock(dom, message))
+    issueDiv.appendChild(widgets.errorMessageBlock(dom, message))
   }
 
   function complainIfBad (ok, body) {
@@ -172,15 +171,15 @@ export function renderIssue (issue, context) {
   const store = issue.doc()
 
   const issueDiv = dom.createElement('div')
-  var me = UI.authn.currentUser()
+  var me = authn.currentUser()
 
   setPaneStyle()
 
-  UI.authn.checkUser() // kick off async operation
+  authn.checkUser() // kick off async operation
 
   var states = kb.any(tracker, ns.wf('issueClass'))
   if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
-  var select = UI.widgets.makeSelectForCategory(
+  var select = widgets.makeSelectForCategory(
     dom,
     kb,
     issue,
@@ -189,7 +188,7 @@ export function renderIssue (issue, context) {
     function (ok, body) {
       if (ok) {
         setModifiedDate(store, kb, store)
-        UI.widgets.refreshTree(issueDiv)
+        widgets.refreshTree(issueDiv)
       } else {
         console.log('Failed to change state:\n' + body)
       }
@@ -200,7 +199,7 @@ export function renderIssue (issue, context) {
   var cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
   for (var i = 0; i < cats.length; i++) {
     issueDiv.appendChild(
-      UI.widgets.makeSelectForCategory(
+      widgets.makeSelectForCategory(
         dom,
         kb,
         issue,
@@ -209,7 +208,7 @@ export function renderIssue (issue, context) {
         function (ok, body) {
           if (ok) {
             setModifiedDate(store, kb, store)
-            UI.widgets.refreshTree(issueDiv)
+            widgets.refreshTree(issueDiv)
           } else {
             console.log('Failed to change category:\n' + body)
           }
@@ -222,8 +221,8 @@ export function renderIssue (issue, context) {
   const a = dom.createElement('a')
   a.setAttribute('href', tracker.uri)
   a.setAttribute('style', 'float:right')
-  issueDiv.appendChild(a).textContent = UI.utils.label(tracker)
-  a.addEventListener('click', UI.widgets.openHrefInOutlineMode, true)
+  issueDiv.appendChild(a).textContent = utils.label(tracker)
+  a.addEventListener('click', widgets.openHrefInOutlineMode, true)
 
   // Main Form for Title, description only
   const coreIssueFormText = `
@@ -253,7 +252,7 @@ export function renderIssue (issue, context) {
 `
   const CORE_ISSUE_FORM = ns.wf('coreIsueForm')
   $rdf.parse(coreIssueFormText, kb, CORE_ISSUE_FORM.doc().uri, 'text/turtle')
-  UI.widgets.appendForm(
+  widgets.appendForm(
     dom,
     issueDiv,
     {},
@@ -266,7 +265,7 @@ export function renderIssue (issue, context) {
   // Descriptions can be long and are stored local to the issue
   /*
   issueDiv.appendChild(
-    UI.widgets.makeDescription(
+    widgets.makeDescription(
       dom,
       kb,
       issue,
@@ -330,7 +329,7 @@ export function renderIssue (issue, context) {
         */
       }
       issueDiv.appendChild(
-        UI.widgets.makeSelectForOptions(
+        widgets.makeSelectForOptions(
           dom,
           kb,
           issue,
@@ -360,7 +359,7 @@ export function renderIssue (issue, context) {
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Super Issues'
     const listOfSupers = subIssuePanel.appendChild(dom.createElement('div'))
     listOfSupers.refresh = function () {
-      UI.utils.syncTableToArrayReOrdered(listOfSupers, kb.each(null, ns.wf('dependent'), issue), UI.widgets.personTR)
+      utils.syncTableToArrayReOrdered(listOfSupers, kb.each(null, ns.wf('dependent'), issue), widgets.personTR)
     }
     listOfSupers.refresh()
 
@@ -368,14 +367,14 @@ export function renderIssue (issue, context) {
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Sub Issues'
     const listOfSubs = subIssuePanel.appendChild(dom.createElement('div'))
     listOfSubs.refresh = function () {
-      UI.utils.syncTableToArrayReOrdered(listOfSubs, kb.each(issue, ns.wf('dependent')), UI.widgets.personTR)
+      utils.syncTableToArrayReOrdered(listOfSubs, kb.each(issue, ns.wf('dependent')), widgets.personTR)
     }
     listOfSubs.refresh()
 
     var b = dom.createElement('button')
     b.setAttribute('type', 'button')
     subIssuePanel.appendChild(b)
-    var classLabel = UI.utils.label(states)
+    var classLabel = utils.label(states)
     b.innerHTML = 'New sub ' + classLabel
     b.setAttribute('style', 'float: right; margin: 0.5em 1em;')
     b.addEventListener(
@@ -392,7 +391,7 @@ export function renderIssue (issue, context) {
   // Extras are stored centrally to the tracker
   var extrasForm = kb.any(tracker, ns.wf('extrasEntryForm'))
   if (extrasForm) {
-    UI.widgets.appendForm(
+    widgets.appendForm(
       dom,
       issueDiv,
       {},
@@ -432,20 +431,20 @@ export function renderIssue (issue, context) {
       er.textContent = body // @@ use nice error message
       issueDiv.insertBefore(er, spacer)
     } else {
-      var discussion = UI.messageArea(dom, kb, issue, messageStore)
+      var discussion = messageArea(dom, kb, issue, messageStore)
       issueDiv.insertBefore(discussion, spacer)
     }
   })
 
   // Draggable attachment list
-  UI.widgets.attachmentList(dom, issue, issueDiv, {
+  widgets.attachmentList(dom, issue, issueDiv, {
     doc: stateStore,
-    promptIcon: UI.icons.iconBase + 'noun_25830.svg',
+    promptIcon: icons.iconBase + 'noun_25830.svg',
     predicate: ns.wf('attachment')
   })
 
   // Delete button to delete the issue
-  const deleteButton = UI.widgets.deleteButtonWithCheck(dom, issueDiv, 'issue', async function () {
+  const deleteButton = widgets.deleteButtonWithCheck(dom, issueDiv, 'issue', async function () {
     try {
       await kb.updater.update(kb.connectedStatements(issue))
     } catch (err) {
@@ -470,11 +469,11 @@ export function renderIssue (issue, context) {
         alert(err)
         return
       }
-      UI.widgets.refreshTree(issueDiv)
+      widgets.refreshTree(issueDiv)
     },
     false
   )
-  refreshButton.setAttribute('style', UI.style.button)
+  refreshButton.setAttribute('style', style.button)
   issueDiv.appendChild(refreshButton)
   return issueDiv
 } // renderIssue

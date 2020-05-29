@@ -33,8 +33,9 @@
   },
   "homepage": "https://github.com/solid/issue-pane",
   "dependencies": {
+    "pane-registry": "^2.0.1",
     "rdflib": "^1.1.0",
-    "solid-ui": "^2.0.0"
+    "solid-ui": "^2.0.6"
   },
   "devDependencies": {
     "eslint": "^6.6.0",

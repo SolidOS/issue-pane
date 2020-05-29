@@ -66,24 +66,6 @@ export function board (dom, query, columnValues, renderItem, vx, vvalue,
     return card
   }
 
-  function _markOldCells () {
-    for (var col = mainRow.firstChild; col; col = col.nextSibling) {
-      for (var card = col.firstChild; card; card = card.nextSibling) {
-        card.old = true
-      }
-    }
-  }
-
-  function _clearOldCells () {
-    for (var col = mainRow.firstChild; col; col = col.nextSibling) {
-      for (var card = col.firstChild; card; card = card.nextSibling) {
-        if (card.old) {
-          col.removeChild(card)
-        }
-      }
-    }
-  }
-
   function sortedBy (values, predicate, defaultSortValue, reverse) {
     var toBeSorted = values.map(x => [kb.any(x, predicate) || defaultSortValue, x])
     toBeSorted.sort()
