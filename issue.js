@@ -437,9 +437,16 @@ export function renderIssue (issue, context) {
   })
 
   // Draggable attachment list
+  var uploadFolderURI
+  if (issue.uri.endsWith('/index.ttl#this')) { // This has a whole folder to itself
+    uploadFolderURI = issue.uri.slice(0, 14) + 'Files/' // back to slash
+  } else { // like state.ttl#Iss1587852322438
+    uploadFolderURI = issue.dir().uri + 'Files/' + issue.uri.split('#')[1] + '/' // New folder for issue in file with others
+  }
   widgets.attachmentList(dom, issue, issueDiv, {
     doc: stateStore,
     promptIcon: icons.iconBase + 'noun_25830.svg',
+    uploadFolder: kb.sym(uploadFolderURI), // Allow local files to be uploaded
     predicate: ns.wf('attachment')
   })
 
