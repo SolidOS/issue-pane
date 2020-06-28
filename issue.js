@@ -13,15 +13,15 @@ function complain (message, context) {
   context.paneDiv.appendChild(widgets.errorMessageBlock(context.dom, message))
 }
 
-export function getState (issue) {
+export function getState (issue, classification) {
   const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
   const states = kb.any(tracker, ns.wf('issueClass'))
+  classification = classification || states
   const types = kb.each(issue, ns.rdf('type'))
-    .filter(ty => kb.holds(ty, ns.rdfs('subClassOf'), states))
+    .filter(ty => kb.holds(ty, ns.rdfs('subClassOf'), classification))
   if (types.length !== 1) {
-    const tracker = kb.the(issue, ns.wf('tracker'))
-    const initialState = kb.any(tracker, ns.wf('initialState'))
-    if (initialState) return initialState
+    // const initialState = kb.any(tracker, ns.wf('initialState')) No do NOT default
+    // if (initialState) return initialState
     throw new Error('Issue must have one type as state: ' + types.length)
   }
   return types[0]
@@ -29,15 +29,10 @@ export function getState (issue) {
 
 export function renderIssueCard (issue, context) {
   function getBackgroundColor () {
-    const classes = kb.each(issue, ns.rdf('type'))
+    const classes = kb.each(issue, ns.rdf('type')) // @@ pick cats in order then state
     const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
 
-    if (catColors.length) return catColors[0].value // pick one
-    var color
-    const state = getState(issue)
-    if (state && (color = kb.any(state, ns.ui('backgroundColor')))) {
-      return color.value
-    }
+    if (catColors.length) return catColors[0].value // pick first one
     return null
   }
   const dom = context.dom
@@ -95,6 +90,8 @@ export function exposeOverlay (subject, context) {
   const button = overlay.appendChild(
     widgets.button(context.dom, icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
   button.style.float = 'right'
+  button.style.margin = '0.7em'
+  delete button.style.backgroundColor // do not want white
   overlay.style.visibility = 'visible'
   overlay.appendChild(renderIssue(subject, context))
   overlay.firstChild.style.overflow = 'auto' // was scroll
@@ -313,6 +310,12 @@ export function renderIssue (issue, context) {
     return devs
   }
 
+  // Super issues first - like parent directories .. maybe use breadcrums from?? @@
+  function renderSubIssue (issue) {
+    const options = { link: false }
+    return widgets.personTR(dom, ns.wf('dependent'), issue, options)
+  }
+
   getPossibleAssignees().then(devs => {
     if (devs.length) {
       devs.map(function (person) {
@@ -355,11 +358,10 @@ export function renderIssue (issue, context) {
       subIssuePanel.style = 'margin: 1em; padding: 1em;'
     }
 
-    // Super issues first - like parent directories .. maybe use breadcrums from?? @@
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Super Issues'
     const listOfSupers = subIssuePanel.appendChild(dom.createElement('div'))
     listOfSupers.refresh = function () {
-      utils.syncTableToArrayReOrdered(listOfSupers, kb.each(null, ns.wf('dependent'), issue), widgets.personTR)
+      utils.syncTableToArrayReOrdered(listOfSupers, kb.each(null, ns.wf('dependent'), issue), renderSubIssue)
     }
     listOfSupers.refresh()
 
@@ -367,7 +369,7 @@ export function renderIssue (issue, context) {
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Sub Issues'
     const listOfSubs = subIssuePanel.appendChild(dom.createElement('div'))
     listOfSubs.refresh = function () {
-      utils.syncTableToArrayReOrdered(listOfSubs, kb.each(issue, ns.wf('dependent')), widgets.personTR)
+      utils.syncTableToArrayReOrdered(listOfSubs, kb.each(issue, ns.wf('dependent')), renderSubIssue)
     }
     listOfSubs.refresh()
 
@@ -437,6 +439,10 @@ export function renderIssue (issue, context) {
   })
 
   // Draggable attachment list
+  const attachmentHint = issueDiv.appendChild(dom.createElement('div'))
+  attachmentHint.innerHTML = `<h4>Attachments</h4>
+    <p>Drag files, emails,
+    web pages onto the paper clip, or click the file upload button.</p>`
   var uploadFolderURI
   if (issue.uri.endsWith('/index.ttl#this')) { // This has a whole folder to itself
     uploadFolderURI = issue.uri.slice(0, 14) + 'Files/' // back to slash

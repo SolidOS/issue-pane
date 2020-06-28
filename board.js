@@ -15,8 +15,7 @@ const kb = UI.store
 const ns = UI.ns
 const $rdf = UI.rdf
 
-export function board (dom, query, columnValues, renderItem, vx, vvalue,
-  options) {
+export function board (dom, columnValues, renderItem, options) {
   const board = dom.createElement('div')
   board.style = 'width: 100%;'
   board.style.margin = '1em'
@@ -34,7 +33,7 @@ export function board (dom, query, columnValues, renderItem, vx, vvalue,
 
     const column = mainRow.appendChild(dom.createElement('td'))
     column.subject = x
-    column.style = 'border: 0.01em solid white; padding: 0.1em; '
+    column.style = 'border: 0.01em solid white; padding: 0.1em;' // display: flex; flex-direction: column; align-items: center;
 
     function droppedURIHandler (uris) {
       uris.forEach(function (u) {
@@ -83,8 +82,11 @@ export function board (dom, query, columnValues, renderItem, vx, vvalue,
     }
     for (var col = mainRow.firstChild; col; col = col.nextSibling) {
       const category = col.subject
-      const items = kb.each(null, ns.rdf('type'), category)
+      var items = kb.each(null, ns.rdf('type'), category)
       const sortBy = options.sortBy || ns.dct('created')
+      if (options.filter) {
+        items = items.filter(options.filter)
+      }
       const sortedItems = sortedBy(items, sortBy, now, true)
       UI.utils.syncTableToArrayReOrdered(col, sortedItems, localRenderItem)
     }
