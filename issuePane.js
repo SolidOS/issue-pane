@@ -140,20 +140,22 @@ export default {
     ** This is would not be needed if our quey language
     ** allowed is to query ardf Collection membership.
     */
-    async function _fixSubClasses (kb, tracker) {
+    async function fixSubClasses (kb, tracker) {
       async function checkOneSuperclass (klass) {
-        const needed = new Set(kb.any(klass, ns.owl('disjointUnionOf'), null, doc)
-          .elements.map(x => x.uri))
+        const collection = kb.any(klass, ns.owl('disjointUnionOf'), null, doc)
+        if (!collection) throw new Error(`Classification ${klass} has no disjointUnionOf`)
+        if (!collection.elements) throw new Error(`Classification ${klass} has no array`)
+        const needed = new Set(collection.elements.map(x => x.uri))
         const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, doc)
           .map(x => x.uri))
         for (const sub of existing) {
           if (!needed.has(sub)) {
-            deletables.push($rdf.st(sub, ns.rdfs('subClassOf'), klass, doc))
+            deletables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc))
           }
         }
         for (const sub of needed) {
           if (!existing.has(sub)) {
-            insertables.push($rdf.st(sub, ns.rdfs('subClassOf'), klass, doc))
+            insertables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc))
           }
         }
       }
@@ -168,9 +170,11 @@ export default {
       }
       const damage = insertables.length + deletables.length
       if (damage) {
+        alert(`Internal error: s${damage} subclasses inconsistences!`)
+        /*
         if (confirm(`Fix ${damage} inconsistent subclasses in tracker config?`)) {
-          // await kb.updater.update(deletables, insertables)
-        }
+          await kb.updater.update(deletables, insertables)
+        */
       }
     }
 
@@ -179,24 +183,18 @@ export default {
     function renderBoard (tracker, klass) {
       const states = kb.any(tracker, ns.wf('issueClass'))
       klass = klass || states // default to states
+      const doingStates = klass.sameTerm(states)
 
       // These are states we will show by default: the open issues.
-      var selectedStates = {}
-      var columnValues = []
       var stateArray = kb.any(klass, ns.owl('disjointUnionOf'))
       if (!stateArray) {
         return complain(`Configuration error: state ${states} does not have substates`)
       }
-      const possible = stateArray.elements
-      possible.map(function (s) {
-        if ((!klass.sameTerm(states)) ||
-          kb.holds(s, ns.rdfs('subClassOf'), ns.wf('Open')) ||
-          s.sameTerm(ns.wf('Open'))
-        ) {
-          selectedStates[s.uri] = true
-          columnValues.push(s)
-        }
-      })
+      var columnValues = stateArray.elements
+      if (doingStates && columnValues.length > 2 // and there are more than two
+      ) { // strip out closed states
+        columnValues = columnValues.filter(state => kb.holds(state, ns.rdfs('subClassOf'), ns.wf('Open')) || state.sameTerm(ns.wf('Open')))
+      }
 
       async function columnDropHandler (issue, newState) {
         const currentState = getState(issue, klass)
@@ -204,7 +202,7 @@ export default {
         const stateStore = kb.any(tracker, ns.wf('stateStore'))
 
         if (newState.sameTerm(currentState)) {
-          alert('Same state ' + UI.utils.label(currentState)) // @@ remove
+          // alert('Same state ' + UI.utils.label(currentState)) // @@ remove
           return
         }
         try {
@@ -222,7 +220,7 @@ export default {
         return !!types[ns.wf('Open').uri]
       }
 
-      var options = { columnDropHandler, filter: isOpen }
+      var options = { columnDropHandler, filter: doingStates ? null : isOpen }
       options.sortBy = ns.dct('created')
       options.sortReverse = true
       function localRenderIssueCard (issue) {
@@ -394,14 +392,20 @@ export default {
           throw new Error('Unexpected tab type: ' + object)
         }
       }
-      var items = [instancesView, tableView, kb.any(tracker, ns.wf('issueClass'))]
+      const states = kb.any(tracker, ns.wf('issueClass'))
+      var items = [instancesView, tableView, states]
         .concat(kb.each(tracker, ns.wf('issueCategory')))
       items.push(settingsView)
       const selectedTab = tableView
       const options = { renderMain, items, selectedTab }
 
-      const tabs = UI.tabs.tabWidget(options)
+      // Add stuff to the ontologies which we believe but they don't say
+      const doc = instancesView.doc()
+      kb.add(instancesView, ns.rdfs('label'), 'My Trackers', doc) // @@ squatting on wf ns
+      kb.add(settingsView, ns.rdfs('label'), 'Settings', doc) // @@ squatting on wf ns
+      kb.add(states, ns.rdfs('label'), 'By State', doc) // @@ squatting on wf ns
 
+      const tabs = UI.tabs.tabWidget(options)
       return tabs
     }
 
@@ -413,14 +417,13 @@ export default {
       }
       tracker = subject
 
-      /*
       try {
         await fixSubClasses(kb, tracker)
       } catch (err) {
         console.log('@@@ Error fixing subclasses in config: ' + err)
       }
-      */
-      var states = kb.any(subject, ns.wf('issueClass'))
+
+      const states = kb.any(subject, ns.wf('issueClass'))
       if (!states) throw new Error('This tracker has no issueClass')
       const stateStore = kb.any(subject, ns.wf('stateStore'))
       if (!stateStore) throw new Error('This tracker has no stateStore')
@@ -486,13 +489,11 @@ export default {
     const tableView = ns.wf('TableView')
     const settingsView = ns.wf('SettingsView')
     const instancesView = ns.wf('InstancesView')
-    const doc = instancesView.doc()
-    kb.add(instancesView, ns.rdfs('label'), 'My Trackers', doc) // @@ squatting on wf ns
-    kb.add(settingsView, ns.rdfs('label'), 'Settings', doc) // @@ squatting on wf ns
 
     const updater = kb.updater
     var t = kb.findTypeURIs(subject)
     var tracker
+
     // Whatever we are rendering, lets load the ontology
     var flowOntology = UI.ns.wf('').doc()
     if (!kb.holds(undefined, undefined, undefined, flowOntology)) {

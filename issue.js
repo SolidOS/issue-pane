@@ -35,8 +35,12 @@ export function renderIssueCard (issue, context) {
     if (catColors.length) return catColors[0].value // pick first one
     return null
   }
+  function refresh () {
+    var backgroundColor = getBackgroundColor() || 'white'
+    card.style.backgroundColor = backgroundColor
+    editButton.style.backgroundColor = backgroundColor // Override white from style sheet
+  }
   const dom = context.dom
-  var backgroundColor = getBackgroundColor() || 'white'
   const uncategorized = !getBackgroundColor() // This is a suspect issue. Prompt to delete it
 
   const card = dom.createElement('div')
@@ -54,7 +58,6 @@ export function renderIssueCard (issue, context) {
   const editButton = widgets.button(dom, icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
     exposeOverlay(issue, context)
   })
-  editButton.style.backgroundColor = backgroundColor // Override white from style sheet
   const editButtonImage = editButton.firstChild
   editButtonImage.style.width = editButtonImage.style.height = '1.5em'
   buttonsCell.appendChild(editButton)
@@ -74,9 +77,9 @@ export function renderIssueCard (issue, context) {
     })
     buttonsCell.appendChild(deleteButton)
   }
-
-  card.style.backgroundColor = backgroundColor
   card.style.maxWidth = '24em' // @@ User adjustable??
+  card.refresh = refresh
+  refresh()
   return card
 }
 
