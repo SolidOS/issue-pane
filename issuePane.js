@@ -32,7 +32,7 @@ export default {
   // noun_17020.svg is a single check box
   name: 'issue',
 
-  audience: [ns.solid('PowerUser')],
+  audience: [], // Anyone.   was [ns.solid('PowerUser')]
 
   // Does the subject deserve an issue pane?
   label: function (subject, _context) {
