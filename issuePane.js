@@ -94,13 +94,13 @@ export default {
     try {
       await updateMany([], ins)
     } catch (err) {
-      return UI.widgets.complain(context, 'Error writing tracker configuration: ' + err)
+      return widgets.complain(context, 'Error writing tracker configuration: ' + err)
     }
     /*
     try {
       await kb.updater.updateMany([], kb.statementsMatching(undefined, undefined, undefined, stateStore))
     } catch (err) {
-      return UI.widgets.complain(context, 'Error writing tracker state file: ' + err)
+      return widgets.complain(context, 'Error writing tracker state file: ' + err)
     }
 */
     const dom = context.dom
@@ -118,15 +118,21 @@ export default {
   },
 
   render: function (subject, context) {
+    function refreshPane () {
+      for (const ele of refreshables) {
+        widgets.refreshTree(ele)
+      }
+    }
     const dom = context.dom
-
     var paneDiv = dom.createElement('div')
     context.paneDiv = paneDiv
     paneDiv.setAttribute('class', 'issuePane')
+    var refreshables = [] // Separate of widgets to be refreshed
+    paneDiv.refresh = refreshPane
 
     function complain (message) {
       console.warn(message)
-      paneDiv.appendChild(UI.widgets.errorMessageBlock(dom, message))
+      paneDiv.appendChild(widgets.errorMessageBlock(dom, message))
     }
 
     function complainIfBad (ok, message) {
@@ -137,50 +143,63 @@ export default {
 
     /** Infer subclass from disjoint Union
     **
-    ** This is would not be needed if our quey language
-    ** allowed is to query ardf Collection membership.
+    ** This is would not be needed if our query language
+    ** allowed is to query rdf Collection membership.
     */
-    async function fixSubClasses (kb, tracker) {
-      async function checkOneSuperclass (klass) {
-        const collection = kb.any(klass, ns.owl('disjointUnionOf'), null, doc)
+    function checkSubClasses (kb, tracker) {
+      function checkOneSuperclass (klass) {
+        const collection = kb.any(klass, ns.owl('disjointUnionOf'), null, klass.doc())
         if (!collection) throw new Error(`Classification ${klass} has no disjointUnionOf`)
         if (!collection.elements) throw new Error(`Classification ${klass} has no array`)
         const needed = new Set(collection.elements.map(x => x.uri))
-        const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, doc)
+        const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, klass.doc())
           .map(x => x.uri))
         for (const sub of existing) {
           if (!needed.has(sub)) {
-            deletables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc))
+            deletables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, klass.doc()))
           }
         }
         for (const sub of needed) {
           if (!existing.has(sub)) {
-            insertables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc))
+            insertables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, klass.doc()))
           }
         }
       }
       const doc = tracker.doc()
-      const states = kb.any(tracker, ns.wf('issueClass'))
-      var cats = kb.each(tracker, ns.wf('issueCategory'))
+      const states = kb.any(tracker, ns.wf('issueClass'), null, doc)
+      var cats = kb.each(tracker, ns.wf('issueCategory'), null, doc)
       var insertables = []
       var deletables = []
       cats.push(states)
       for (const klass of cats) {
-        await checkOneSuperclass(klass)
+        checkOneSuperclass(klass)
       }
-      const damage = insertables.length + deletables.length
-      if (damage) {
-        alert(`Internal error: s${damage} subclasses inconsistences!`)
-        /*
-        if (confirm(`Fix ${damage} inconsistent subclasses in tracker config?`)) {
-          await kb.updater.update(deletables, insertables)
-        */
+      // const damage = insertables.length + deletables.length
+      return [deletables, insertables]
+    }
+
+    async function subClassFixButton (kb, tracker) {
+      const [deletables, insertables] = checkSubClasses(kb, tracker)
+      const button = widgets.button(dom, UI.icons.iconBase + 'noun_344563.svg', 'Adjust', async () => {
+        const [deletables, insertables] = checkSubClasses(kb, tracker)
+        try {
+          await updater.update(deletables, insertables)
+          alert('(Config file adjusted)')
+        } catch (err) {
+          const msg = 'Config file cant be adjusted: ' + err
+          alert(msg)
+          console.error(msg)
+        }
+      })
+      if (deletables.length === 0 && insertables.length === 0) {
+        button.setAttribute('disabled', 'yes')
       }
+      return button
     }
 
     /** /////////////////////////// Board
     */
-    function renderBoard (tracker, klass) {
+    async function renderBoard (tracker, klass) {
       const states = kb.any(tracker, ns.wf('issueClass'))
       klass = klass || states // default to states
       const doingStates = klass.sameTerm(states)
@@ -210,9 +229,11 @@ export default {
             [$rdf.st(issue, ns.rdf('type'), currentState, stateStore)],
             [$rdf.st(issue, ns.rdf('type'), newState, stateStore)])
         } catch (err) {
-          UI.widgets.complain(context, 'Unable to change issue state: ' + err)
+          widgets.complain(context, 'Unable to change issue state: ' + err)
+          return
         }
         boardDiv.refresh() // reorganize board to match the new reality
+        paneDiv.refresh() // Propagate up to whole pane in fact
       }
 
       function isOpen (issue) {
@@ -242,12 +263,12 @@ export default {
             alert(err)
             return
           }
-          UI.widgets.refreshTree(tableDiv)
+          widgets.refreshTree(tableDiv)
         })
       return refreshButton
     }
 
-    function renderTable (tracker) {
+    async function renderTable (tracker) {
       function newOptionalClause () {
         var clause = new $rdf.IndexedFormula()
         query.pat.optional.push(clause)
@@ -345,7 +366,7 @@ export default {
       return creationDiv
     }
 
-    function renderInstances (theClass) {
+    async function renderInstances (theClass) {
       const instancesDiv = dom.createElement('div')
       var context = { dom, div: instancesDiv, noun: 'tracker' }
       UI.authn.registrationList(context, { public: true, private: true, type: theClass }).then(_context2 => {
@@ -360,7 +381,7 @@ export default {
       })
       return instancesDiv
     }
-    function renderSettings (tracker) {
+    async function renderSettings (tracker) {
       const settingsDiv = dom.createElement('div')
       // A registration control allows the to record this tracker in their type index
       var context = { dom, div: settingsDiv, noun: 'tracker' }
@@ -371,26 +392,30 @@ export default {
         widgets.appendForm(dom, settingsDiv, {}, tracker, settingsForm,
           tracker.doc(), complainIfBad)
       })
+      const fixButton = await subClassFixButton(kb, tracker)
+      settingsDiv.append(fixButton)
       return settingsDiv
     }
-
-    function renderTabsTableAndBoard () {
-      function renderMain (ele, object) {
+    /* Renderthe tab system
+    */
+    async function renderTabsTableAndBoard () {
+      async function renderMain (ele, object) {
         ele.innerHTML = '' // Clear out "loading message"
         if (object.sameTerm(boardView)) {
-          ele.appendChild(renderBoard(tracker))
+          ele.appendChild(await renderBoard(tracker))
         } else if (object.sameTerm(tableView)) {
-          ele.appendChild(renderTable(tracker))
+          ele.appendChild(await renderTable(tracker))
         } else if (object.sameTerm(settingsView)) {
-          ele.appendChild(renderSettings(tracker))
+          ele.appendChild(await renderSettings(tracker))
         } else if (object.sameTerm(instancesView)) {
-          ele.appendChild(renderInstances(ns.wf('Tracker')))
+          ele.appendChild(await renderInstances(ns.wf('Tracker')))
         } else if ((kb.holds(tracker, ns.wf('issueCategory'), object)) ||
                    (kb.holds(tracker, ns.wf('issueClass'), object))) {
-          ele.appendChild(renderBoard(tracker, object))
+          ele.appendChild(await renderBoard(tracker, object))
         } else {
           throw new Error('Unexpected tab type: ' + object)
         }
+        refreshables.push(ele.lastChild)
       }
       const states = kb.any(tracker, ns.wf('issueClass'))
       var items = [instancesView, tableView, states]
@@ -411,14 +436,14 @@ export default {
 
     async function renderTracker () {
       function showNewIssue (issue) {
-        UI.widgets.refreshTree(paneDiv)
+        widgets.refreshTree(paneDiv)
         exposeOverlay(issue, context)
         b.disabled = false // https://stackoverflow.com/questions/41176582/enable-disable-a-button-in-pure-javascript
       }
       tracker = subject
 
       try {
-        await fixSubClasses(kb, tracker)
+        await checkSubClasses(kb, tracker)
       } catch (err) {
         console.log('@@@ Error fixing subclasses in config: ' + err)
       }
@@ -462,24 +487,24 @@ export default {
       // Table of issues - when we have the main issue list
       // We also need the ontology loaded
       //
-      context.session.store.fetcher
-        .load([stateStore])
-        .then(function (_xhrs) {
-          const tableDiv = renderTabsTableAndBoard(tracker)
-          // const tableDiv = renderTable(tracker) // was
-          paneDiv.appendChild(tableDiv)
+      try {
+        await context.session.store.fetcher.load(stateStore)
+      } catch (err) {
+        const msg = 'Cannot load state store: ' + err
+        alert(msg)
+        return console.log(msg)
+      }
+      const tabsDiv = await renderTabsTableAndBoard(tracker)
 
-          if (tableDiv.refresh) {
-            // Refresh function
-          } else {
-            console.log('No table refresh function?!')
-          }
-          paneDiv.appendChild(newTrackerButton(subject))
-          updater.addDownstreamChangeListener(stateStore, tableDiv.refresh) // Live update
-        })
-        .catch(function (err) {
-          return console.log('Cannot load state store: ' + err)
-        })
+      paneDiv.appendChild(tabsDiv)
+
+      if (tabsDiv.refresh) {
+        // Refresh function
+      } else {
+        console.log('No table refresh function?!')
+      }
+      paneDiv.appendChild(newTrackerButton(subject, context))
+      updater.addDownstreamChangeListener(stateStore, paneDiv.refresh) // Live update
       // end of Tracker instance
     } // render tracker
 
@@ -531,7 +556,7 @@ export default {
               }
               paneDiv.appendChild(renderIssue(subject, context))
               updater.addDownstreamChangeListener(stateStore, function () {
-                UI.widgets.refreshTree(paneDiv)
+                widgets.refreshTree(paneDiv)
               }) // Live update
             }
           )

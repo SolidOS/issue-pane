@@ -1,6 +1,8 @@
 # Wrap TTL files into JS files for bundling with library
 
-,all : wf.js trackerSettingsForm.js trackerInstancesForm.js ui.js
+# was trackerInstancesForm.js
+
+,all : wf.js trackerSettingsForm.js  ui.js
 
 #individualForm.js : individualForm.ttl
 #				(echo 'module.exports = `' ; cat individualForm.ttl; echo '`') >  individualForm.js
