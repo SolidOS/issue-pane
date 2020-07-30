@@ -1,6 +1,6 @@
 {
   "name": "issue-pane",
-  "version": "2.3.0",
+  "version": "2.2.0",
   "description": "Solid-compatible Panes: issue editor",
   "main": "./issuePane.js",
   "scripts": {
@@ -33,13 +33,13 @@
   },
   "homepage": "https://github.com/solid/issue-pane",
   "dependencies": {
-    "pane-registry": "^2.1.0",
-    "rdflib": "^1.2.2",
-    "solid-ui": "^2.1.1"
+    "pane-registry": "^2.2.1",
+    "rdflib": "^1.3.1",
+    "solid-ui": "^2.2.0"
   },
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "husky": "^3.1.0",
+    "eslint": "^7.5.0",
+    "husky": "^4.2.5",
     "lint-staged": "^10.2.11",
     "standard": "^14.3.4"
   },
