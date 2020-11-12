@@ -66,7 +66,7 @@ export function board (dom, columnValues, renderItem, options) {
   }
 
   function sortedBy (values, predicate, defaultSortValue, reverse) {
-    var toBeSorted = values.map(x => [kb.any(x, predicate) || defaultSortValue, x])
+    const toBeSorted = values.map(x => [kb.any(x, predicate) || defaultSortValue, x])
     toBeSorted.sort()
     if (reverse) toBeSorted.reverse() // @@ check
     return toBeSorted.map(pair => pair[1])
@@ -80,9 +80,9 @@ export function board (dom, columnValues, renderItem, options) {
       ele.subject = subject
       return ele
     }
-    for (var col = mainRow.firstChild; col; col = col.nextSibling) {
+    for (let col = mainRow.firstChild; col; col = col.nextSibling) {
       const category = col.subject
-      var items = kb.each(null, ns.rdf('type'), category)
+      let items = kb.each(null, ns.rdf('type'), category)
       const sortBy = options.sortBy || ns.dct('created')
       if (options.filter) {
         items = items.filter(options.filter)

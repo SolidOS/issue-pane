@@ -36,7 +36,7 @@ export default {
 
   // Does the subject deserve an issue pane?
   label: function (subject, _context) {
-    var t = kb.findTypeURIs(subject)
+    const t = kb.findTypeURIs(subject)
     if (
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
       kb.holds(subject, UI.ns.wf('tracker'))
@@ -62,8 +62,8 @@ export default {
     }
 
     var kb = context.session.store
-    var ns = UI.ns
-    var stateStore
+    const ns = UI.ns
+    let stateStore
     if (options.newInstance) {
       stateStore = kb.sym(options.newInstance.doc().uri + '_state.ttl')
     } else {
@@ -120,7 +120,7 @@ export default {
   render: function (subject, context) {
     const dom = context.dom
 
-    var paneDiv = dom.createElement('div')
+    const paneDiv = dom.createElement('div')
     context.paneDiv = paneDiv
     paneDiv.setAttribute('class', 'issuePane')
 
@@ -161,7 +161,7 @@ export default {
       }
       const doc = tracker.doc()
       const states = kb.any(tracker, ns.wf('issueClass'))
-      var cats = kb.each(tracker, ns.wf('issueCategory'))
+      const cats = kb.each(tracker, ns.wf('issueCategory'))
       var insertables = []
       var deletables = []
       cats.push(states)
@@ -186,11 +186,11 @@ export default {
       const doingStates = klass.sameTerm(states)
 
       // These are states we will show by default: the open issues.
-      var stateArray = kb.any(klass, ns.owl('disjointUnionOf'))
+      const stateArray = kb.any(klass, ns.owl('disjointUnionOf'))
       if (!stateArray) {
         return complain(`Configuration error: state ${states} does not have substates`)
       }
-      var columnValues = stateArray.elements
+      let columnValues = stateArray.elements
       if (doingStates && columnValues.length > 2 // and there are more than two
       ) { // strip out closed states
         columnValues = columnValues.filter(state => kb.holds(state, ns.rdfs('subClassOf'), ns.wf('Open')) || state.sameTerm(ns.wf('Open')))
@@ -220,7 +220,7 @@ export default {
         return !!types[ns.wf('Open').uri]
       }
 
-      var options = { columnDropHandler, filter: doingStates ? null : isOpen }
+      const options = { columnDropHandler, filter: doingStates ? null : isOpen }
       options.sortBy = ns.dct('created')
       options.sortReverse = true
       function localRenderIssueCard (issue) {
@@ -249,19 +249,19 @@ export default {
 
     function renderTable (tracker) {
       function newOptionalClause () {
-        var clause = new $rdf.IndexedFormula()
+        const clause = new $rdf.IndexedFormula()
         query.pat.optional.push(clause)
         return clause
       }
       const states = kb.any(subject, ns.wf('issueClass'))
-      var cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
-      var vars = ['issue', 'state', 'created']
+      const cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
+      const vars = ['issue', 'state', 'created']
       var query = new $rdf.Query(UI.utils.label(subject))
       for (let i = 0; i < cats.length; i++) {
         vars.push('_cat_' + i)
       }
-      var v = {} // The RDF variable objects for each variable name
-      vars.map(function (x) {
+      const v = {} // The RDF variable objects for each variable name
+      vars.forEach(function (x) {
         query.vars.push((v[x] = $rdf.variable(x)))
       })
       query.pat.add(v.issue, ns.wf('tracker'), tracker)
@@ -278,24 +278,24 @@ export default {
         clause.add(v['_cat_' + i], ns.rdfs('subClassOf'), cats[i])
       }
 
-      var propertyList = kb.any(tracker, ns.wf('propertyList')) // List of extra properties
+      const propertyList = kb.any(tracker, ns.wf('propertyList')) // List of extra properties
       if (propertyList) {
-        var properties = propertyList.elements
-        for (var p = 0; p < properties.length; p++) {
-          var prop = properties[p]
-          var vname = '_prop_' + p
+        const properties = propertyList.elements
+        for (let p = 0; p < properties.length; p++) {
+          const prop = properties[p]
+          let vname = '_prop_' + p
           if (prop.uri.indexOf('#') >= 0) {
             vname = prop.uri.split('#')[1]
           }
-          var oneOpt = newOptionalClause()
+          const oneOpt = newOptionalClause()
           query.vars.push((v[vname] = $rdf.variable(vname)))
           oneOpt.add(v.issue, prop, v[vname])
         }
       }
 
-      var selectedStates = {}
-      var possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
-      possible.map(function (s) {
+      const selectedStates = {}
+      const possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
+      possible.forEach(function (s) {
         if (
           kb.holds(s, ns.rdfs('subClassOf'), ns.wf('Open')) ||
           s.sameTerm(ns.wf('Open'))
@@ -310,7 +310,7 @@ export default {
         exposeOverlay(subject, context)
       }
 
-      var tableDiv = UI.table(dom, {
+      const tableDiv = UI.table(dom, {
         query: query,
         keyVariable: '?issue', // Charactersic of row
         sortBy: '?created', // By default, sort by date
@@ -328,9 +328,9 @@ export default {
 
     // Allow user to create new things within the folder
     function renderCreationControl (refreshTarget) {
-      var creationDiv = dom.createElement('div')
-      var me = UI.authn.currentUser()
-      var creationContext = {
+      const creationDiv = dom.createElement('div')
+      const me = UI.authn.currentUser()
+      const creationContext = {
         // folder: subject,
         div: creationDiv,
         dom: dom,
@@ -347,7 +347,7 @@ export default {
 
     function renderInstances (theClass) {
       const instancesDiv = dom.createElement('div')
-      var context = { dom, div: instancesDiv, noun: 'tracker' }
+      const context = { dom, div: instancesDiv, noun: 'tracker' }
       UI.authn.registrationList(context, { public: true, private: true, type: theClass }).then(_context2 => {
         instancesDiv.appendChild(renderCreationControl(instancesDiv))
         /* // keep this code in case we need a form
@@ -363,7 +363,7 @@ export default {
     function renderSettings (tracker) {
       const settingsDiv = dom.createElement('div')
       // A registration control allows the to record this tracker in their type index
-      var context = { dom, div: settingsDiv, noun: 'tracker' }
+      const context = { dom, div: settingsDiv, noun: 'tracker' }
       UI.authn.registrationControl(context, tracker, ns.wf('Tracker')).then(_context2 => {
         const settingsForm = ns.wf('TrackerSettingsForm')
         const text = trackerSettingsFormText
@@ -393,7 +393,7 @@ export default {
         }
       }
       const states = kb.any(tracker, ns.wf('issueClass'))
-      var items = [instancesView, tableView, states]
+      const items = [instancesView, tableView, states]
         .concat(kb.each(tracker, ns.wf('issueCategory')))
       items.push(settingsView)
       const selectedTab = tableView
@@ -430,24 +430,24 @@ export default {
 
       UI.authn.checkUser() // kick off async operation
 
-      var h = dom.createElement('h2')
+      const h = dom.createElement('h2')
       h.setAttribute('style', 'font-size: 150%')
       paneDiv.appendChild(h)
-      var classLabel = UI.utils.label(states)
+      const classLabel = UI.utils.label(states)
       h.appendChild(dom.createTextNode(classLabel + ' list')) // Use class label @@I18n
 
       // New Issue button
       var b = dom.createElement('button')
-      var container = dom.createElement('div')
+      const container = dom.createElement('div')
       b.setAttribute('type', 'button')
       b.setAttribute('style', 'padding: 0.3em; font-size: 100%; margin: 0.5em;')
       container.appendChild(b)
       paneDiv.appendChild(container)
-      var img = dom.createElement('img')
+      const img = dom.createElement('img')
       img.setAttribute('src', UI.icons.iconBase + 'noun_19460_green.svg')
       img.setAttribute('style', 'width: 1em; height: 1em; margin: 0.2em;')
       b.appendChild(img)
-      var span = dom.createElement('span')
+      const span = dom.createElement('span')
       span.innerHTML = 'New ' + classLabel
       b.appendChild(span)
       b.addEventListener(
@@ -491,16 +491,16 @@ export default {
     const instancesView = ns.wf('InstancesView')
 
     const updater = kb.updater
-    var t = kb.findTypeURIs(subject)
-    var tracker
+    const t = kb.findTypeURIs(subject)
+    let tracker
 
     // Whatever we are rendering, lets load the ontology
-    var flowOntology = UI.ns.wf('').doc()
+    const flowOntology = UI.ns.wf('').doc()
     if (!kb.holds(undefined, undefined, undefined, flowOntology)) {
       // If not loaded already
       $rdf.parse(require('./wf.js'), kb, flowOntology.uri, 'text/turtle') // Load ontology directly
     }
-    var userInterfaceOntology = UI.ns.ui('').doc()
+    const userInterfaceOntology = UI.ns.ui('').doc()
     if (!kb.holds(undefined, undefined, undefined, userInterfaceOntology)) {
       // If not loaded already
       $rdf.parse(require('./ui.js'), kb, userInterfaceOntology.uri, 'text/turtle') // Load ontology directly
@@ -519,7 +519,7 @@ export default {
       context.session.store.fetcher
         .load(tracker.doc())
         .then(function (_xhrs) {
-          var stateStore = kb.any(tracker, ns.wf('stateStore'))
+          const stateStore = kb.any(tracker, ns.wf('stateStore'))
           context.session.store.fetcher.nowOrWhenFetched(
             stateStore,
             subject,
@@ -566,7 +566,7 @@ export default {
       )
     }
 
-    var loginOutButton
+    let loginOutButton
     const overlay = paneDiv.appendChild(dom.createElement('div'))
     context.overlay = overlay
     overlay.style = OVERFLOW_STYLE

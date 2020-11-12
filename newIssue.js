@@ -6,27 +6,27 @@ const $rdf = UI.rdf
 const ns = UI.ns
 
 export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
-  var form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error
-  var stateStore = kb.any(tracker, ns.wf('stateStore'))
+  const form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error
+  const stateStore = kb.any(tracker, ns.wf('stateStore'))
 
-  var timestring = function () {
-    var now = new Date()
+  const timestring = function () {
+    const now = new Date()
     return '' + now.getTime()
     // http://www.w3schools.com/jsref/jsref_obj_date.asp
   }
 
-  var sendNewIssue = function () {
+  const sendNewIssue = function () {
     titlefield.setAttribute('class', 'pendingedit')
     titlefield.disabled = true
-    var sts = []
-    var issue
+    const sts = []
+    let issue
 
-    var expandTemplate = function (template) {
+    const expandTemplate = function (template) {
       const now = new $rdf.Literal(new Date())
       const nnnn = '' + new Date().getTime()
       const YYYY = now.value.slice(0, 4)
-      var MM = now.value.slice(5, 7)
-      var DD = now.value.slice(8, 10)
+      const MM = now.value.slice(5, 7)
+      const DD = now.value.slice(8, 10)
       return template
         .replace('{N}', nnnn)
         .replace('{YYYY}', YYYY)
@@ -34,8 +34,8 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
         .replace('{DD}', DD)
     }
     // Where to store the new issue?
-    var template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
-    var issueDoc
+    let template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
+    let issueDoc
     if (template) {
       // Does each issue do in its own file?
       template = $rdf.uri.join(template, stateStore.uri) // Template is relative
@@ -43,19 +43,20 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
     } else {
       issue = kb.sym(stateStore.uri + '#' + 'Iss' + timestring())
     }
+    // eslint-disable-next-line prefer-const
     issueDoc = issue.doc()
 
     // Basic 9 core predicates are stored in the main stateStore
 
-    var title = kb.literal(titlefield.value)
+    const title = kb.literal(titlefield.value)
     sts.push(new $rdf.Statement(issue, ns.wf('tracker'), tracker, stateStore))
     sts.push(new $rdf.Statement(issue, ns.dc('title'), title, stateStore))
     sts.push(
       new $rdf.Statement(issue, ns.dct('created'), new Date(), stateStore)
     )
-    var initialStates = kb.each(tracker, ns.wf('initialState'))
+    const initialStates = kb.each(tracker, ns.wf('initialState'))
     if (initialStates.length === 0) { console.log('This tracker has no initialState') }
-    for (var i = 0; i < initialStates.length; i++) {
+    for (let i = 0; i < initialStates.length; i++) {
       sts.push(
         new $rdf.Statement(
           issue,
@@ -79,7 +80,7 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
       )
     }
 
-    var sendComplete = function (uri, success, body) {
+    const sendComplete = function (uri, success, body) {
       if (!success) {
         console.log("Error: can't save new issue:" + body)
       } else {
@@ -90,8 +91,8 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
     kb.updater.update([], sts, sendComplete)
   }
 
-  var states = kb.any(tracker, ns.wf('issueClass'))
-  var classLabel = UI.utils.label(states)
+  const states = kb.any(tracker, ns.wf('issueClass'))
+  const classLabel = UI.utils.label(states)
   form.innerHTML =
     '<h2>Add new ' +
     (superIssue ? 'sub ' : '') +
