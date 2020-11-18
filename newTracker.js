@@ -10,7 +10,7 @@ const updater = kb.updater
 */
 export function newTrackerButton (thisTracker, context) {
   function timestring () {
-    var now = new Date()
+    const now = new Date()
     return '' + now.getTime()
     // http://www.w3schools.com/jsref/jsref_obj_date.asp
   }
@@ -20,10 +20,10 @@ export function newTrackerButton (thisTracker, context) {
     ws,
     base
   ) {
-    var appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
+    const appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
     // console.log("Ready to make new instance at "+ws)
-    var sp = UI.ns.space
-    var kb = context.session.store
+    const sp = UI.ns.space
+    const kb = context.session.store
 
     if (!base) {
       base = kb.any(ws, sp('uriPrefix')).value
@@ -39,18 +39,18 @@ export function newTrackerButton (thisTracker, context) {
       }
     }
 
-    var stateStore = kb.any(thisTracker, ns.wf('stateStore'))
-    var newStore = kb.sym(base + 'store.ttl')
+    const stateStore = kb.any(thisTracker, ns.wf('stateStore'))
+    const newStore = kb.sym(base + 'store.ttl')
 
-    var here = thisTracker.doc()
+    const here = thisTracker.doc()
 
-    var oldBase = here.uri.slice(0, here.uri.lastIndexOf('/') + 1)
+    const oldBase = here.uri.slice(0, here.uri.lastIndexOf('/') + 1)
 
     var morph = function (x) {
       // Move any URIs in this space into that space
       if (x.elements !== undefined) return x.elements.map(morph) // Morph within lists
       if (x.uri === undefined) return x
-      var u = x.uri
+      let u = x.uri
       if (u === stateStore.uri) return newStore // special case
       if (u.slice(0, oldBase.length) === oldBase) {
         u = base + u.slice(oldBase.length)
@@ -58,17 +58,17 @@ export function newTrackerButton (thisTracker, context) {
       }
       return kb.sym(u)
     }
-    var there = morph(here)
-    var newTracker = morph(thisTracker)
+    const there = morph(here)
+    const newTracker = morph(thisTracker)
 
-    var myConfig = kb.statementsMatching(
+    const myConfig = kb.statementsMatching(
       undefined,
       undefined,
       undefined,
       here
     )
-    for (var i = 0; i < myConfig.length; i++) {
-      var st = myConfig[i]
+    for (let i = 0; i < myConfig.length; i++) {
+      const st = myConfig[i]
       kb.add(
         morph(st.subject),
         morph(st.predicate),

@@ -36,7 +36,7 @@ export function renderIssueCard (issue, context) {
     return null
   }
   function refresh () {
-    var backgroundColor = getBackgroundColor() || 'white'
+    const backgroundColor = getBackgroundColor() || 'white'
     card.style.backgroundColor = backgroundColor
     editButton.style.backgroundColor = backgroundColor // Override white from style sheet
     widgets.setImage(img, issue) // react to a change of class of the object
@@ -107,26 +107,26 @@ export function renderIssue (issue, context) {
   function setModifiedDate (subj, kb, doc) {
     if (SET_MODIFIED_DATES) {
       if (!getOption(tracker, 'trackLastModified')) return
-      var deletions = kb.statementsMatching(issue, ns.dct('modified'))
+      let deletions = kb.statementsMatching(issue, ns.dct('modified'))
       deletions = deletions.concat(
         kb.statementsMatching(issue, ns.wf('modifiedBy'))
       )
-      var insertions = [$rdf.st(issue, ns.dct('modified'), new Date(), doc)]
+      const insertions = [$rdf.st(issue, ns.dct('modified'), new Date(), doc)]
       if (me) insertions.push($rdf.st(issue, ns.wf('modifiedBy'), me, doc))
       kb.updater.update(deletions, insertions, function (_uri, _ok, _body) {})
     }
   }
 
   function say (message, style) {
-    var pre = dom.createElement('pre')
+    const pre = dom.createElement('pre')
     pre.setAttribute('style', style || 'color: grey')
     issueDiv.appendChild(pre)
     pre.appendChild(dom.createTextNode(message))
     return pre
   }
 
-  var timestring = function () {
-    var now = new Date()
+  const timestring = function () {
+    const now = new Date()
     return '' + now.getTime()
     // http://www.w3schools.com/jsref/jsref_obj_date.asp
   }
@@ -146,15 +146,15 @@ export function renderIssue (issue, context) {
   }
   function getOption (tracker, option) {
     // eg 'allowSubIssues'
-    var opt = kb.any(tracker, ns.ui(option))
+    const opt = kb.any(tracker, ns.ui(option))
     return !!(opt && opt.value)
   }
 
   function setPaneStyle () {
-    var types = kb.findTypeURIs(issue)
-    var mystyle = 'padding: 0.5em 1.5em 1em 1.5em; '
-    var backgroundColor = null
-    for (var uri in types) {
+    const types = kb.findTypeURIs(issue)
+    let mystyle = 'padding: 0.5em 1.5em 1em 1.5em; '
+    let backgroundColor = null
+    for (const uri in types) {
       backgroundColor = kb.any(
         kb.sym(uri),
         kb.sym('http://www.w3.org/ns/ui#backgroundColor')
@@ -179,9 +179,9 @@ export function renderIssue (issue, context) {
 
   authn.checkUser() // kick off async operation
 
-  var states = kb.any(tracker, ns.wf('issueClass'))
+  const states = kb.any(tracker, ns.wf('issueClass'))
   if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
-  var select = widgets.makeSelectForCategory(
+  const select = widgets.makeSelectForCategory(
     dom,
     kb,
     issue,
@@ -198,8 +198,8 @@ export function renderIssue (issue, context) {
   )
   issueDiv.appendChild(select)
 
-  var cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
-  for (var i = 0; i < cats.length; i++) {
+  const cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
+  for (let i = 0; i < cats.length; i++) {
     issueDiv.appendChild(
       widgets.makeSelectForCategory(
         dom,
@@ -266,10 +266,10 @@ export function renderIssue (issue, context) {
 
   // Assigned to whom?
 
-  var assignments = kb.statementsMatching(issue, ns.wf('assignee'))
+  const assignments = kb.statementsMatching(issue, ns.wf('assignee'))
   if (assignments.length > 1) {
     say('Weird, was assigned to more than one person. Fixing ..')
-    var deletions = assignments.slice(1)
+    const deletions = assignments.slice(1)
     kb.updater.update(deletions, [], function (uri, ok, body) {
       if (ok) {
         say('Now fixed.')
@@ -283,15 +283,15 @@ export function renderIssue (issue, context) {
   // Anyone assigned to any issue we know about
 
   async function getPossibleAssignees () {
-    var devs = []
-    var devGroups = kb.each(tracker, ns.wf('assigneeGroup'))
+    let devs = []
+    const devGroups = kb.each(issue, ns.wf('assigneeGroup'))
     for (let i = 0; i < devGroups.length; i++) {
       const group = devGroups[i]
       await kb.fetcher.load(group)
       devs = devs.concat(kb.each(group, ns.vcard('hasMember')))
     }
     // Anyone who is a developer of any project which uses this tracker
-    var proj = kb.any(null, ns.doap('bug-database'), tracker) // What project?
+    const proj = kb.any(null, ns.doap('bug-database'), tracker) // What project?
     if (proj) {
       await kb.fetcher.load(proj)
       devs = devs.concat(kb.each(proj, ns.doap('developer')))
@@ -310,7 +310,7 @@ export function renderIssue (issue, context) {
       // devs.map(function (person) {
       //   kb.fetcher.lookUpThing(person)
       // }) // best effort async for names etc
-      var opts = {
+      const opts = {
         // 'mint': '** Add new person **',
         nullLabel: '(unassigned)'
         /* 'mintStatementsFun': function (newDev) {
@@ -340,7 +340,7 @@ export function renderIssue (issue, context) {
 
   /*  The trees of super issues and subissues
   */
-  var subIssuePanel
+  let subIssuePanel
   if (getOption(tracker, 'allowSubIssues')) {
     if (!subIssuePanel) {
       subIssuePanel = issueDiv.appendChild(dom.createElement('div'))
@@ -362,10 +362,10 @@ export function renderIssue (issue, context) {
     }
     listOfSubs.refresh()
 
-    var b = dom.createElement('button')
+    const b = dom.createElement('button')
     b.setAttribute('type', 'button')
     subIssuePanel.appendChild(b)
-    var classLabel = utils.label(states)
+    const classLabel = utils.label(states)
     b.innerHTML = 'New sub ' + classLabel
     b.setAttribute('style', 'float: right; margin: 0.5em 1em;')
     b.addEventListener(
@@ -380,7 +380,7 @@ export function renderIssue (issue, context) {
   issueDiv.appendChild(dom.createElement('br'))
 
   // Extras are stored centrally to the tracker
-  var extrasForm = kb.any(tracker, ns.wf('extrasEntryForm'))
+  const extrasForm = kb.any(tracker, ns.wf('extrasEntryForm'))
   if (extrasForm) {
     widgets.appendForm(
       dom,
@@ -395,10 +395,10 @@ export function renderIssue (issue, context) {
 
   //   Comment/discussion area
 
-  var spacer = issueDiv.appendChild(dom.createElement('tr'))
+  const spacer = issueDiv.appendChild(dom.createElement('tr'))
   spacer.setAttribute('style', 'height: 1em') // spacer and placeHolder
 
-  var template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
+  const template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
   /*
   var chatDocURITemplate = kb.anyValue(tracker, ns.wf('chatDocURITemplate')) // relaive to issue
   var chat
@@ -407,7 +407,7 @@ export function renderIssue (issue, context) {
     chat = kb.sym(expandTemplate(template))
   } else
   */
-  var messageStore
+  let messageStore
   if (template) {
     messageStore = issue.doc() // for now. Could go deeper
   } else {
@@ -418,11 +418,11 @@ export function renderIssue (issue, context) {
 
   kb.fetcher.nowOrWhenFetched(messageStore, function (ok, body, _xhr) {
     if (!ok) {
-      var er = dom.createElement('p')
+      const er = dom.createElement('p')
       er.textContent = body // @@ use nice error message
       issueDiv.insertBefore(er, spacer)
     } else {
-      var discussion = messageArea(dom, kb, issue, messageStore)
+      const discussion = messageArea(dom, kb, issue, messageStore)
       issueDiv.insertBefore(discussion, spacer)
     }
   })
@@ -432,7 +432,7 @@ export function renderIssue (issue, context) {
   attachmentHint.innerHTML = `<h4>Attachments</h4>
     <p>Drag files, emails,
     web pages onto the paper clip, or click the file upload button.</p>`
-  var uploadFolderURI
+  let uploadFolderURI
   if (issue.uri.endsWith('/index.ttl#this')) { // This has a whole folder to itself
     uploadFolderURI = issue.uri.slice(0, 14) + 'Files/' // back to slash
   } else { // like state.ttl#Iss1587852322438
@@ -460,7 +460,7 @@ export function renderIssue (issue, context) {
   deleteButton.style.float = 'right'
 
   // Refresh button
-  var refreshButton = dom.createElement('button')
+  const refreshButton = dom.createElement('button')
   refreshButton.textContent = 'refresh messages'
   refreshButton.addEventListener(
     'click',
