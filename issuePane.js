@@ -348,14 +348,15 @@ export default {
     }
 
     // Allow user to create new things within the folder
-    function renderCreationControl (refreshTarget) {
+    // @@ move this into common code
+    function renderCreationControl (refreshTarget, noun) {
       var creationDiv = dom.createElement('div')
       var me = UI.authn.currentUser()
       var creationContext = {
         // folder: subject,
         div: creationDiv,
         dom: dom,
-        noun: 'tracker',
+        noun: noun,
         statusArea: creationDiv,
         me: me,
         refreshTarget: refreshTarget
@@ -365,22 +366,16 @@ export default {
       UI.create.newThingUI(creationContext, context, relevantPanes) // Have to pass panes down  newUI
       return creationDiv
     }
-
-    async function renderInstances (theClass) {
+    async function renderInstances (theClass, noun) {
       const instancesDiv = dom.createElement('div')
-      var context = { dom, div: instancesDiv, noun: 'tracker' }
-      UI.authn.registrationList(context, { public: true, private: true, type: theClass }).then(_context2 => {
-        instancesDiv.appendChild(renderCreationControl(instancesDiv))
-        /* // keep this code in case we need a form
-        const InstancesForm = ns.wf('TrackerInstancesForm')
-        const text = trackerInstancesFormText
-        $rdf.parse(text, kb, InstancesForm.doc().uri, 'text/turtle')
-        widgets.appendForm(dom, instancesDiv, {}, tracker, InstancesForm,
-          tracker.doc(), complainIfBad)
-        */
-      })
+      var context = { dom, div: instancesDiv, noun: noun }
+
+      const _context2 = await UI.authn.registrationList(context, { public: true, private: true, type: theClass })
+      instancesDiv.appendChild(renderCreationControl(instancesDiv, noun))
+
       return instancesDiv
     }
+
     async function renderSettings (tracker) {
       const settingsDiv = dom.createElement('div')
       // A registration control allows the to record this tracker in their type index
@@ -408,7 +403,7 @@ export default {
         } else if (object.sameTerm(settingsView)) {
           ele.appendChild(await renderSettings(tracker))
         } else if (object.sameTerm(instancesView)) {
-          ele.appendChild(await renderInstances(ns.wf('Tracker')))
+          ele.appendChild(await renderInstances(ns.wf('Tracker'), 'tracker'))
         } else if ((kb.holds(tracker, ns.wf('issueCategory'), object)) ||
                    (kb.holds(tracker, ns.wf('issueClass'), object))) {
           ele.appendChild(await renderBoard(tracker, object))
