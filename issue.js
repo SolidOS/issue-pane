@@ -39,6 +39,7 @@ export function renderIssueCard (issue, context) {
     const backgroundColor = getBackgroundColor() || 'white'
     card.style.backgroundColor = backgroundColor
     editButton.style.backgroundColor = backgroundColor // Override white from style sheet
+    widgets.setImage(img, issue) // react to a change of class of the object
   }
   const dom = context.dom
   const uncategorized = !getBackgroundColor() // This is a suspect issue. Prompt to delete it
@@ -52,7 +53,8 @@ export function renderIssueCard (issue, context) {
   card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
 
   const img = card.firstChild.firstChild.firstChild.firstChild // div/table/tr/td/img
-  img.setAttribute('src', icons.iconBase + 'noun_Danger_1259514.svg') // override
+  // img.setAttribute('src', icons.iconBase + 'noun_Danger_1259514.svg') // override
+
   // Add a button for viewing the whole issue in overlay
   const buttonsCell = card.firstChild.firstChild.children[2] // right hand part of card
   const editButton = widgets.button(dom, icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
@@ -262,22 +264,6 @@ export function renderIssue (issue, context) {
     complainIfBad
   )
 
-  // Descriptions can be long and are stored local to the issue
-  /*
-  issueDiv.appendChild(
-    widgets.makeDescription(
-      dom,
-      kb,
-      issue,
-      ns.wf('description'),
-      store,
-      function (ok, body) {
-        if (ok) setModifiedDate(store, kb, store)
-        else console.log('Failed to change description:\n' + body)
-      }
-    )
-  ) */
-
   // Assigned to whom?
 
   const assignments = kb.statementsMatching(issue, ns.wf('assignee'))
@@ -301,8 +287,8 @@ export function renderIssue (issue, context) {
     const devGroups = kb.each(issue, ns.wf('assigneeGroup'))
     for (let i = 0; i < devGroups.length; i++) {
       const group = devGroups[i]
-      await kb.fetcher.load()
-      devs = devs.concat(kb.each(group, ns.vcard('member')))
+      await kb.fetcher.load(group)
+      devs = devs.concat(kb.each(group, ns.vcard('hasMember')))
     }
     // Anyone who is a developer of any project which uses this tracker
     const proj = kb.any(null, ns.doap('bug-database'), tracker) // What project?
@@ -321,9 +307,9 @@ export function renderIssue (issue, context) {
 
   getPossibleAssignees().then(devs => {
     if (devs.length) {
-      devs.forEach(function (person) {
-        kb.fetcher.lookUpThing(person)
-      }) // best effort async for names etc
+      // devs.map(function (person) {
+      //   kb.fetcher.lookUpThing(person)
+      // }) // best effort async for names etc
       const opts = {
         // 'mint': '** Add new person **',
         nullLabel: '(unassigned)'

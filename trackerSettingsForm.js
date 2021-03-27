@@ -80,6 +80,10 @@ export const trackerSettingsFormText = `
   #      [ a ui:Multiple; ui:property rdfs:subClassOf; ui:reverse true; ui:part core:StateForm ]
     ) .
 
+    core:OpenOrClosed a rdfs:Class; rdfs:label "OpenOrClosed".
+    wf:Open rdfs:subClassOf core:OpenOrClosed.
+    wf:Closed rdfs:subClassOf core:OpenOrClosed.
+
     core:StateForm a ui:Form; dct:title "Form for one state";
       ui:parts (
                 [ a :SingleLineTextField;
@@ -87,8 +91,12 @@ export const trackerSettingsFormText = `
                          :maxLength "128";
                          :property rdfs:label;
                          :size "40" ]
+
+                 [ a ui:Classifier; :label "open or closed"; ui:category core:OpenOrClosed;
+                  ui:property rdfs:subClassOf;  ]  #  ui:reverse true   --no
+
                  [ a :ColorField; :label "Background color"; :property :backgroundColor ]
-                  # @@ add icon for state
+                  # @@ add icon for state?
 
                  ).
 
