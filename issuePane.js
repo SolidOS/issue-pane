@@ -440,7 +440,7 @@ export default {
       var b = dom.createElement('button')
       const container = dom.createElement('div')
       b.setAttribute('type', 'button')
-      b.setAttribute('style', 'padding: 0.3em; font-size: 100%; margin: 0.5em;')
+      b.setAttribute('style', 'padding: 0.3em; font-size: 100%; margin: 0.5em; display: flex; align-items: center;')
       container.appendChild(b)
       paneDiv.appendChild(container)
       const img = dom.createElement('img')
