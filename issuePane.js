@@ -22,7 +22,7 @@ const widgets = UI.widgets
 // const TRACKER_ICON = UI.icons.iconBase + 'noun_list_638112'
 // const TASK_ICON = UI.icons.iconBase + 'noun_17020.svg'
 
-const OVERFLOW_STYLE = 'position: fixed; top: 1.51em; right: 2em; left: 2em; bottom:1.5em; border: 0.1em grey; overflow: scroll;'
+const OVERFLOW_STYLE = 'position: fixed; z-index: 100; top: 1.51em; right: 2em; left: 2em; bottom:1.5em; border: 0.1em grey; overflow: scroll;'
 export default {
   icon: UI.icons.iconBase + 'noun_122196.svg', // was: js/panes/issue/tbl-bug-22.png
   // noun_list_638112 is a checklist document
