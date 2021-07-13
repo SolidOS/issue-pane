@@ -31,7 +31,7 @@ export const trackerSettingsFormText = `
       [   a ui:Comment;  ui:contents """You can optionally sort issues using (one or more) classification systems"""@en ]
 
 
-      [ a ui:Choice;  ui:canMintNew true;  ui:use core:ClassificationForm;
+      [ a ui:Multiple;  ui:canMintNew true;  ui:part core:ClassificationForm;
           ui:property  wf:issueCategory; ui:label "Sort them into which category?"; ui:from rdfs:Class ]
 
       [ a :BooleanField;
