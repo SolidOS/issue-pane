@@ -36,13 +36,13 @@
   "dependencies": {
     "pane-registry": "^2.4.2",
     "rdflib": "^2.2.7",
-    "solid-ui": "^2.4.9-beta"
+    "solid-ui": "^2.4.10"
   },
   "devDependencies": {
-    "eslint": "^7.28.0",
-    "husky": "^6.0.0",
-    "lint-staged": "^11.0.0",
-    "standard": "^16.0.3"
+    "eslint": "^7.32.0",
+    "husky": "^7.0.2",
+    "lint-staged": "^11.2.3",
+    "standard": "^16.0.4"
   },
   "husky": {
     "hooks": {
