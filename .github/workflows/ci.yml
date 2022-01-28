@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install -g npm # for issues with executables on npm 7
       - run: npm ci
+      - run: npm run lint --if-present
       - run: npm test
-      - run: npm run build
+      - run: npm run build --if-present
