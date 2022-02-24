@@ -8,11 +8,23 @@ const kb = store
 
 const SET_MODIFIED_DATES = false
 
+export const TASK_ICON = icons.iconBase + 'noun_17020_gray-tick.svg'
+export const OPEN_TASK_ICON = icons.iconBase + 'noun_17020_sans-tick.svg'
+export const CLOSED_TASK_ICON = icons.iconBase + 'noun_17020.svg'
+
 function complain (message, context) {
   console.warn(message)
   context.paneDiv.appendChild(widgets.errorMessageBlock(context.dom, message))
 }
 
+export function isOpen (issue) {
+  const types = kb.findTypeURIs(issue)
+  return !!types[ns.wf('Open').uri]
+}
+
+export function iconForIssue (issue) {
+  return isOpen(issue) ? TASK_ICON : CLOSED_TASK_ICON
+}
 export function getState (issue, classification) {
   const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
   const states = kb.any(tracker, ns.wf('issueClass'))
@@ -46,7 +58,7 @@ export function renderIssueCard (issue, context) {
   const card = dom.createElement('div')
   const table = card.appendChild(dom.createElement('table'))
   table.style.width = '100%'
-  const options = { draggable: false } // Let the baord make th ewhole card draggable
+  const options = { draggable: false } // Let the baord make the whole card draggable
   table.appendChild(widgets.personTR(dom, null, issue, options))
   table.subject = issue
   card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
@@ -105,10 +117,9 @@ export function renderIssue (issue, context) {
   function setModifiedDate (subj, kb, doc) {
     if (SET_MODIFIED_DATES) {
       if (!getOption(tracker, 'trackLastModified')) return
-      let deletions = kb.statementsMatching(issue, ns.dct('modified'))
-      deletions = deletions.concat(
-        kb.statementsMatching(issue, ns.wf('modifiedBy'))
-      )
+      const deletions = kb.statementsMatching(issue, ns.dct('modified'))
+        .concat(kb.statementsMatching(issue, ns.wf('modifiedBy'))
+        )
       const insertions = [$rdf.st(issue, ns.dct('modified'), new Date(), doc)]
       if (me) insertions.push($rdf.st(issue, ns.wf('modifiedBy'), me, doc))
       kb.updater.update(deletions, insertions, function (_uri, _ok, _body) {})
@@ -150,7 +161,7 @@ export function renderIssue (issue, context) {
 
   function setPaneStyle () {
     const types = kb.findTypeURIs(issue)
-    let mystyle = 'padding: 0.5em 1.5em 1em 1.5em; '
+    const mystyle0 = 'padding: 0.5em 1.5em 1em 1.5em; '
     let backgroundColor = null
     for (const uri in types) {
       backgroundColor = kb.any(
@@ -160,9 +171,11 @@ export function renderIssue (issue, context) {
       if (backgroundColor) break
     }
     backgroundColor = backgroundColor ? backgroundColor.value : '#eee' // default grey
-    mystyle += 'background-color: ' + backgroundColor + '; '
+    const mystyle = mystyle0 + 'background-color: ' + backgroundColor + '; '
     issueDiv.setAttribute('style', mystyle)
   }
+
+  /// ////////////// Body of renderIssue
 
   const dom = context.dom
   const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
@@ -171,11 +184,14 @@ export function renderIssue (issue, context) {
   const store = issue.doc()
 
   const issueDiv = dom.createElement('div')
-  var me = authn.currentUser()
+  const me = authn.currentUser()
 
   setPaneStyle()
 
   authn.checkUser() // kick off async operation
+
+  const iconButton = issueDiv.appendChild(widgets.button(dom, iconForIssue(issue)))
+  widgets.makeDraggable(iconButton, issue) // Drag me wherever you need to do stuff with this issue
 
   const states = kb.any(tracker, ns.wf('issueClass'))
   if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
@@ -197,13 +213,13 @@ export function renderIssue (issue, context) {
   issueDiv.appendChild(select)
 
   const cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
-  for (let i = 0; i < cats.length; i++) {
+  for (const cat of cats) {
     issueDiv.appendChild(
       widgets.makeSelectForCategory(
         dom,
         kb,
         issue,
-        cats[i],
+        cat,
         stateStore,
         function (ok, body) {
           if (ok) {
@@ -297,20 +313,16 @@ export function renderIssue (issue, context) {
   // Anyone assigned to any issue we know about
 
   async function getPossibleAssignees () {
-    let devs = []
     const devGroups = kb.each(issue, ns.wf('assigneeGroup'))
-    for (let i = 0; i < devGroups.length; i++) {
-      const group = devGroups[i]
-      await kb.fetcher.load()
-      devs = devs.concat(kb.each(group, ns.vcard('member')))
-    }
+    await kb.fetcher.load(devGroups) // Load them all
+    const groupDevs = devGroups.map(group => kb.each(group, ns.vcard('member'), null, group.doc())).flat()
     // Anyone who is a developer of any project which uses this tracker
     const proj = kb.any(null, ns.doap('bug-database'), tracker) // What project?
     if (proj) {
       await kb.fetcher.load(proj)
-      devs = devs.concat(kb.each(proj, ns.doap('developer')))
     }
-    return devs
+    const projectDevs = proj ? kb.each(proj, ns.doap('developer')) : []
+    return groupDevs.concat(projectDevs)
   }
 
   // Super issues first - like parent directories .. maybe use breadcrums from?? @@
@@ -446,12 +458,11 @@ export function renderIssue (issue, context) {
   attachmentHint.innerHTML = `<h4>Attachments</h4>
     <p>Drag files, emails,
     web pages onto the paper clip, or click the file upload button.</p>`
-  let uploadFolderURI
-  if (issue.uri.endsWith('/index.ttl#this')) { // This has a whole folder to itself
-    uploadFolderURI = issue.uri.slice(0, 14) + 'Files/' // back to slash
-  } else { // like state.ttl#Iss1587852322438
-    uploadFolderURI = issue.dir().uri + 'Files/' + issue.uri.split('#')[1] + '/' // New folder for issue in file with others
-  }
+  const uploadFolderURI =
+     issue.uri.endsWith('/index.ttl#this') // This has a whole folder to itself
+       ? issue.uri.slice(0, 14) + 'Files/' // back to slash
+       : issue.dir().uri + 'Files/' + issue.uri.split('#')[1] + '/' // New folder for issue in file with others
+
   widgets.attachmentList(dom, issue, issueDiv, {
     doc: stateStore,
     promptIcon: icons.iconBase + 'noun_25830.svg',

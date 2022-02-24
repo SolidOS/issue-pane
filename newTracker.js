@@ -20,6 +20,19 @@ export function newTrackerButton (thisTracker, context) {
     ws,
     base
   ) {
+    function morph (x) {
+      // Move any URIs in this space into that space
+      if (x.elements !== undefined) return x.elements.map(morph) // Morph within lists
+      if (x.uri === undefined) return x
+      let u = x.uri
+      if (u === stateStore.uri) return newStore // special case
+      if (u.slice(0, oldBase.length) === oldBase) {
+        u = base + u.slice(oldBase.length)
+        $rdf.log.debug(' Map ' + x.uri + ' to ' + u)
+      }
+      return kb.sym(u)
+    }
+
     const appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
     // console.log("Ready to make new instance at "+ws)
     const sp = UI.ns.space
@@ -46,18 +59,6 @@ export function newTrackerButton (thisTracker, context) {
 
     const oldBase = here.uri.slice(0, here.uri.lastIndexOf('/') + 1)
 
-    var morph = function (x) {
-      // Move any URIs in this space into that space
-      if (x.elements !== undefined) return x.elements.map(morph) // Morph within lists
-      if (x.uri === undefined) return x
-      let u = x.uri
-      if (u === stateStore.uri) return newStore // special case
-      if (u.slice(0, oldBase.length) === oldBase) {
-        u = base + u.slice(oldBase.length)
-        $rdf.log.debug(' Map ' + x.uri + ' to ' + u)
-      }
-      return kb.sym(u)
-    }
     const there = morph(here)
     const newTracker = morph(thisTracker)
 

@@ -61,7 +61,7 @@ export default {
       return Promise.all(updates)
     }
 
-    var kb = context.session.store
+    const kb = context.session.store
     const ns = UI.ns
     let stateStore
     if (options.newInstance) {
@@ -148,33 +148,41 @@ export default {
         const needed = new Set(collection.elements.map(x => x.uri))
         const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, doc)
           .map(x => x.uri))
+        const superfluous = existing.filter(sub => !needed.has(sub))
+        const deleteActions = superfluous.map(sub => { return { action: 'delete', st: $rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc) } })
+        /*
         for (const sub of existing) {
           if (!needed.has(sub)) {
             deletables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc))
           }
         }
+        */
+        const missing = needed.filter(sub => !existing.has(sub))
+        const insertActions = missing.ma(sub => { return { action: 'insert', st: $rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc) } })
+        /*
         for (const sub of needed) {
           if (!existing.has(sub)) {
             insertables.push($rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc))
           }
         }
+        */
+        return deleteActions.concat(insertActions)
       }
       const doc = tracker.doc()
       const states = kb.any(tracker, ns.wf('issueClass'))
-      const cats = kb.each(tracker, ns.wf('issueCategory'))
-      var insertables = []
-      var deletables = []
-      cats.push(states)
+      const cats = kb.each(tracker, ns.wf('issueCategory')).concat([states])
+      let damage = [] // to make totally functionaly  need to deal with map over async.
       for (const klass of cats) {
-        await checkOneSuperclass(klass)
+        damage = await damage.concat(checkOneSuperclass(klass))
       }
-      const damage = insertables.length + deletables.length
-      if (damage) {
-        alert(`Internal error: s${damage} subclasses inconsistences!`)
-        /*
+      if (damage.length) {
+        const insertables = damage.filter(fix => fix.action === 'insert').map(fix => fix.st)
+        const deletables = damage.filter(fix => fix.action === 'delete').map(fix => fix.st)
+        // alert(`Internal error: s${damage} subclasses inconsistences!`)
+        console.log('Damage:', damage)
         if (confirm(`Fix ${damage} inconsistent subclasses in tracker config?`)) {
           await kb.updater.update(deletables, insertables)
-        */
+        }
       }
     }
 
@@ -256,7 +264,7 @@ export default {
       const states = kb.any(subject, ns.wf('issueClass'))
       const cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
       const vars = ['issue', 'state', 'created']
-      var query = new $rdf.Query(UI.utils.label(subject))
+      const query = new $rdf.Query(UI.utils.label(subject))
       for (let i = 0; i < cats.length; i++) {
         vars.push('_cat_' + i)
       }
@@ -437,7 +445,7 @@ export default {
       h.appendChild(dom.createTextNode(classLabel + ' list')) // Use class label @@I18n
 
       // New Issue button
-      var b = dom.createElement('button')
+      const b = dom.createElement('button')
       const container = dom.createElement('div')
       b.setAttribute('type', 'button')
       b.setAttribute('style', 'padding: 0.3em; font-size: 100%; margin: 0.5em;')
@@ -571,8 +579,6 @@ export default {
     context.overlay = overlay
     overlay.style = OVERFLOW_STYLE
     overlay.style.visibility = 'hidden'
-
-    // var overlayPane = null // overlay.appendChild(dom.createElement('div')) // avoid stomping on style by pane
 
     UI.authn.checkUser().then(webId => {
       if (webId) {

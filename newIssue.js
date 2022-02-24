@@ -100,7 +100,7 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
     '</h2><p>Title of new ' +
     classLabel +
     ':</p>'
-  var titlefield = dom.createElement('input')
+  const titlefield = dom.createElement('input')
   titlefield.setAttribute('type', 'text')
   titlefield.setAttribute(
     'style',
