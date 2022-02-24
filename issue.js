@@ -366,12 +366,10 @@ export function renderIssue (issue, context) {
 
   /*  The trees of super issues and subissues
   */
-  let subIssuePanel
   if (getOption(tracker, 'allowSubIssues')) {
-    if (!subIssuePanel) {
-      subIssuePanel = issueDiv.appendChild(dom.createElement('div'))
-      subIssuePanel.style = 'margin: 1em; padding: 1em;'
-    }
+    const subIssuePanel = issueDiv.appendChild(dom.createElement('div'))
+    subIssuePanel.style = 'margin: 1em; padding: 1em;'
+
 
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Super Issues'
     const listOfSupers = subIssuePanel.appendChild(dom.createElement('div'))
