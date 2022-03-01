@@ -39,21 +39,22 @@ export function getState (issue, classification) {
   return types[0]
 }
 
-export function renderIssueCard (issue, context) {
-  function getBackgroundColor () {
-    const classes = kb.each(issue, ns.rdf('type')) // @@ pick cats in order then state
-    const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
+export function getBackgroundColorFromTypes (issue) {
+  const classes = kb.each(issue, ns.rdf('type')) // @@ pick cats in order then state
+  const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
 
-    if (catColors.length) return catColors[0].value // pick first one
-    return null
-  }
+  if (catColors.length) return catColors[0].value // pick first one
+  return null
+}
+
+export function renderIssueCard (issue, context) {
   function refresh () {
-    const backgroundColor = getBackgroundColor() || 'white'
+    const backgroundColor = getBackgroundColorFromTypes(issue) || 'white'
     card.style.backgroundColor = backgroundColor
     editButton.style.backgroundColor = backgroundColor // Override white from style sheet
   }
   const dom = context.dom
-  const uncategorized = !getBackgroundColor() // This is a suspect issue. Prompt to delete it
+  const uncategorized = !getBackgroundColorFromTypes(issue) // This is a suspect issue. Prompt to delete it
 
   const card = dom.createElement('div')
   const table = card.appendChild(dom.createElement('table'))
@@ -112,6 +113,13 @@ export function exposeOverlay (subject, context) {
   overlay.firstChild.style.overflow = 'auto' // was scroll
 }
 
+function renderSpacer (dom, backgroundColor) {
+  const spacer = dom.createElement('div')
+  spacer.setAttribute('style', 'height: 1em; margin: 0.5em;') // spacer and placeHolder
+  spacer.style.backgroundColor = backgroundColor // try that
+  return spacer
+}
+
 export function renderIssue (issue, context) {
   // Don't bother changing the last modified dates of things: save time
   function setModifiedDate (subj, kb, doc) {
@@ -134,7 +142,7 @@ export function renderIssue (issue, context) {
     return pre
   }
 
-  const timestring = function () {
+  function timestring () {
     const now = new Date()
     return '' + now.getTime()
     // http://www.w3schools.com/jsref/jsref_obj_date.asp
@@ -160,19 +168,11 @@ export function renderIssue (issue, context) {
   }
 
   function setPaneStyle () {
-    const types = kb.findTypeURIs(issue)
-    const mystyle0 = 'padding: 0.5em 1.5em 1em 1.5em; '
-    let backgroundColor = null
-    for (const uri in types) {
-      backgroundColor = kb.any(
-        kb.sym(uri),
-        kb.sym('http://www.w3.org/ns/ui#backgroundColor')
-      )
-      if (backgroundColor) break
-    }
-    backgroundColor = backgroundColor ? backgroundColor.value : '#eee' // default grey
-    const mystyle = mystyle0 + 'background-color: ' + backgroundColor + '; '
+    const backgroundColor = getBackgroundColorFromTypes(issue) || '#eee' // default grey
+    const mystyle0 = 'padding: 0.5em 1.5em 1em 1.5em; border: 0.7em;'
+    const mystyle = mystyle0 + 'border-color: ' + backgroundColor + '; '
     issueDiv.setAttribute('style', mystyle)
+    issueDiv.style.backgroundColor = 'white'
   }
 
   /// ////////////// Body of renderIssue
@@ -185,6 +185,7 @@ export function renderIssue (issue, context) {
 
   const issueDiv = dom.createElement('div')
   const me = authn.currentUser()
+  const backgroundColor = getBackgroundColorFromTypes(issue) || 'white'
 
   setPaneStyle()
 
@@ -268,31 +269,17 @@ export function renderIssue (issue, context) {
 `
   const CORE_ISSUE_FORM = ns.wf('coreIsueForm')
   $rdf.parse(coreIssueFormText, kb, CORE_ISSUE_FORM.doc().uri, 'text/turtle')
-  widgets.appendForm(
+  const form = widgets.appendForm(
     dom,
-    issueDiv,
+    null, // was: container
     {},
     issue,
     CORE_ISSUE_FORM,
     stateStore,
     complainIfBad
   )
-
-  // Descriptions can be long and are stored local to the issue
-  /*
-  issueDiv.appendChild(
-    widgets.makeDescription(
-      dom,
-      kb,
-      issue,
-      ns.wf('description'),
-      store,
-      function (ok, body) {
-        if (ok) setModifiedDate(store, kb, store)
-        else console.log('Failed to change description:\n' + body)
-      }
-    )
-  ) */
+  issueDiv.appendChild(form)
+  form.style.backgroundColor = backgroundColor
 
   // Assigned to whom?
 
@@ -364,25 +351,36 @@ export function renderIssue (issue, context) {
     }
   })
 
-  /*  The trees of super issues and subissues
+  /*  The trees of super-issues and sub-issues
   */
+  function supersOver (issue, stack) {
+    stack = stack || []
+    const sup = kb.any(null, ns.wf('dependent'), issue, issue.doc())
+    if (sup) return supersOver(sup, [sup].concat(stack))
+    return stack
+  }
   if (getOption(tracker, 'allowSubIssues')) {
     const subIssuePanel = issueDiv.appendChild(dom.createElement('div'))
     subIssuePanel.style = 'margin: 1em; padding: 1em;'
 
-
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Super Issues'
     const listOfSupers = subIssuePanel.appendChild(dom.createElement('div'))
+    listOfSupers.style.display = 'flex'
     listOfSupers.refresh = function () {
-      utils.syncTableToArrayReOrdered(listOfSupers, kb.each(null, ns.wf('dependent'), issue), renderSubIssue)
+      // const supers = kb.each(null, ns.wf('dependent'), issue, issue.doc())
+      const supers = supersOver(issue)
+      utils.syncTableToArrayReOrdered(listOfSupers, supers, renderSubIssue)
     }
     listOfSupers.refresh()
 
     // Sub issues
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Sub Issues'
     const listOfSubs = subIssuePanel.appendChild(dom.createElement('div'))
+    listOfSubs.style.display = 'flex'
+    listOfSubs.style.flexDirection = 'reverse' // Or center
     listOfSubs.refresh = function () {
-      utils.syncTableToArrayReOrdered(listOfSubs, kb.each(issue, ns.wf('dependent')), renderSubIssue)
+      const subs = kb.each(issue, ns.wf('dependent'), null, issue.doc())
+      utils.syncTableToArrayReOrdered(listOfSubs, subs, renderSubIssue)
     }
     listOfSubs.refresh()
 
@@ -415,12 +413,12 @@ export function renderIssue (issue, context) {
       stateStore,
       complainIfBad
     )
+    // issueDiv.appendChild(renderSpacer(backgroundColor))
   }
 
   //   Comment/discussion area
 
-  const spacer = issueDiv.appendChild(dom.createElement('tr'))
-  spacer.setAttribute('style', 'height: 1em') // spacer and placeHolder
+  const spacer = issueDiv.appendChild(renderSpacer(dom, backgroundColor))
 
   const template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
   /*
@@ -448,7 +446,8 @@ export function renderIssue (issue, context) {
     } else {
       const discussion = messageArea(dom, kb, issue, messageStore)
       issueDiv.insertBefore(discussion, spacer)
-    }
+      issueDiv.insertBefore(renderSpacer(dom, backgroundColor), discussion)
+    } // Not sure why  e stuck this in upwards rather than downwards
   })
 
   // Draggable attachment list

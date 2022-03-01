@@ -19,7 +19,6 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
     titlefield.setAttribute('class', 'pendingedit')
     titlefield.disabled = true
     const sts = []
-    let issue
 
     const expandTemplate = function (template) {
       const now = new $rdf.Literal(new Date())
@@ -34,34 +33,30 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
         .replace('{DD}', DD)
     }
     // Where to store the new issue?
-    let template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
-    let issueDoc
-    if (template) {
+    const template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
+    const issue = template
       // Does each issue do in its own file?
-      template = $rdf.uri.join(template, stateStore.uri) // Template is relative
-      issue = kb.sym(expandTemplate(template))
-    } else {
-      issue = kb.sym(stateStore.uri + '#' + 'Iss' + timestring())
-    }
-    // eslint-disable-next-line prefer-const
-    issueDoc = issue.doc()
+      ? kb.sym(expandTemplate($rdf.uri.join(template, stateStore.uri)))
+      : kb.sym(stateStore.uri + '#' + 'Iss' + timestring())
+
+    const issueDoc = issue.doc()
 
     // Basic 9 core predicates are stored in the main stateStore
 
     const title = kb.literal(titlefield.value)
     sts.push(new $rdf.Statement(issue, ns.wf('tracker'), tracker, stateStore))
     sts.push(new $rdf.Statement(issue, ns.dc('title'), title, stateStore))
-    sts.push(
-      new $rdf.Statement(issue, ns.dct('created'), new Date(), stateStore)
-    )
-    const initialStates = kb.each(tracker, ns.wf('initialState'))
-    if (initialStates.length === 0) { console.log('This tracker has no initialState') }
-    for (let i = 0; i < initialStates.length; i++) {
+    sts.push(new $rdf.Statement(issue, ns.dct('created'), new Date(), stateStore))
+    // Copy states from super issue as after all they are subtasks so initially same state same category
+    const initialStates = superIssue
+      ? kb.each(superIssue, ns.rdf('type'), null, superIssue.doc())
+      : kb.each(tracker, ns.wf('initialState'))
+    for (const state of initialStates) {
       sts.push(
         new $rdf.Statement(
           issue,
           ns.rdf('type'),
-          initialStates[i],
+          state,
           stateStore
         )
       )
@@ -119,5 +114,6 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
     false
   )
   form.appendChild(titlefield)
+  titlefield.focus() // we want user cursor here
   return form
 }

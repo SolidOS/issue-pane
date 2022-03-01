@@ -140,14 +140,14 @@ export default {
     ** This is would not be needed if our quey language
     ** allowed is to query ardf Collection membership.
     */
-    async function fixSubClasses (kb, tracker) {
+    async function fixSubClasses (kb, tracker) { // 20220228
       async function checkOneSuperclass (klass) {
         const collection = kb.any(klass, ns.owl('disjointUnionOf'), null, doc)
         if (!collection) throw new Error(`Classification ${klass} has no disjointUnionOf`)
         if (!collection.elements) throw new Error(`Classification ${klass} has no array`)
         const needed = new Set(collection.elements.map(x => x.uri))
-        const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, doc)
-          .map(x => x.uri))
+
+        const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, doc).map(x => x.uri))
         const superfluous = existing.filter(sub => !needed.has(sub))
         const deleteActions = superfluous.map(sub => { return { action: 'delete', st: $rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc) } })
         /*
@@ -173,7 +173,7 @@ export default {
       const cats = kb.each(tracker, ns.wf('issueCategory')).concat([states])
       let damage = [] // to make totally functionaly  need to deal with map over async.
       for (const klass of cats) {
-        damage = await damage.concat(checkOneSuperclass(klass))
+        damage = damage.concat(await checkOneSuperclass(klass))
       }
       if (damage.length) {
         const insertables = damage.filter(fix => fix.action === 'insert').map(fix => fix.st)
@@ -404,7 +404,7 @@ export default {
       const items = [instancesView, tableView, states]
         .concat(kb.each(tracker, ns.wf('issueCategory')))
       items.push(settingsView)
-      const selectedTab = tableView
+      const selectedTab = tableView.uri
       const options = { renderMain, items, selectedTab }
 
       // Add stuff to the ontologies which we believe but they don't say
