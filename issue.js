@@ -59,7 +59,7 @@ export function renderIssueCard (issue, context) {
   const card = dom.createElement('div')
   const table = card.appendChild(dom.createElement('table'))
   table.style.width = '100%'
-  const options = { draggable: false } // Let the baord make the whole card draggable
+  const options = { draggable: false } // Let the board make the whole card draggable
   table.appendChild(widgets.personTR(dom, null, issue, options))
   table.subject = issue
   card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
