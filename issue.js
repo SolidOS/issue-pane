@@ -8,11 +8,23 @@ const $rdf = rdf
 
 const SET_MODIFIED_DATES = false
 
+export const TASK_ICON = icons.iconBase + 'noun_17020_gray-tick.svg'
+export const OPEN_TASK_ICON = icons.iconBase + 'noun_17020_sans-tick.svg'
+export const CLOSED_TASK_ICON = icons.iconBase + 'noun_17020.svg'
+
 function complain (message, context) {
   console.warn(message)
   context.paneDiv.appendChild(widgets.errorMessageBlock(context.dom, message))
 }
 
+export function isOpen (issue) {
+  const types = store.findTypeURIs(issue)
+  return !!types[ns.wf('Open').uri]
+}
+
+export function iconForIssue (issue) {
+  return isOpen(issue) ? TASK_ICON : CLOSED_TASK_ICON
+}
 export function getState (issue, classification) {
   const tracker = store.the(issue, ns.wf('tracker'), null, issue.doc())
   const states = store.any(tracker, ns.wf('issueClass'))
@@ -20,33 +32,34 @@ export function getState (issue, classification) {
   const types = store.each(issue, ns.rdf('type'))
     .filter(ty => store.holds(ty, ns.rdfs('subClassOf'), classification))
   if (types.length !== 1) {
-    // const initialState = kb.any(tracker, ns.wf('initialState')) No do NOT default
+    // const initialState = store.any(tracker, ns.wf('initialState')) No do NOT default
     // if (initialState) return initialState
     throw new Error('Issue must have one type as state: ' + types.length)
   }
   return types[0]
 }
 
-export function renderIssueCard (issue, context) {
-  function getBackgroundColor () {
-    const classes = store.each(issue, ns.rdf('type')) // @@ pick cats in order then state
-    const catColors = classes.map(cat => store.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
+export function getBackgroundColorFromTypes (issue) {
+  const classes = store.each(issue, ns.rdf('type')) // @@ pick cats in order then state
+  const catColors = classes.map(cat => store.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
 
-    if (catColors.length) return catColors[0].value // pick first one
-    return null
-  }
+  if (catColors.length) return catColors[0].value // pick first one
+  return null
+}
+
+export function renderIssueCard (issue, context) {
   function refresh () {
-    const backgroundColor = getBackgroundColor() || 'white'
+    const backgroundColor = getBackgroundColorFromTypes(issue) || 'white'
     card.style.backgroundColor = backgroundColor
     editButton.style.backgroundColor = backgroundColor // Override white from style sheet
   }
   const dom = context.dom
-  const uncategorized = !getBackgroundColor() // This is a suspect issue. Prompt to delete it
+  const uncategorized = !getBackgroundColorFromTypes(issue) // This is a suspect issue. Prompt to delete it
 
   const card = dom.createElement('div')
   const table = card.appendChild(dom.createElement('table'))
   table.style.width = '100%'
-  const options = { draggable: false } // Let the baord make th ewhole card draggable
+  const options = { draggable: false } // Let the board make the whole card draggable
   table.appendChild(widgets.personTR(dom, null, issue, options))
   table.subject = issue
   card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
@@ -100,15 +113,21 @@ export function exposeOverlay (subject, context) {
   overlay.firstChild.style.overflow = 'auto' // was scroll
 }
 
+function renderSpacer (dom, backgroundColor) {
+  const spacer = dom.createElement('div')
+  spacer.setAttribute('style', 'height: 1em; margin: 0.5em;') // spacer and placeHolder
+  spacer.style.backgroundColor = backgroundColor // try that
+  return spacer
+}
+
 export function renderIssue (issue, context) {
   // Don't bother changing the last modified dates of things: save time
   function setModifiedDate (subj, store, doc) {
     if (SET_MODIFIED_DATES) {
       if (!getOption(tracker, 'trackLastModified')) return
-      let deletions = store.statementsMatching(issue, ns.dct('modified'))
-      deletions = deletions.concat(
-        store.statementsMatching(issue, ns.wf('modifiedBy'))
-      )
+      const deletions = store.statementsMatching(issue, ns.dct('modified'))
+        .concat(store.statementsMatching(issue, ns.wf('modifiedBy'))
+        )
       const insertions = [$rdf.st(issue, ns.dct('modified'), new Date(), doc)]
       if (me) insertions.push($rdf.st(issue, ns.wf('modifiedBy'), me, doc))
       store.updater.update(deletions, insertions, function (_uri, _ok, _body) {})
@@ -123,7 +142,7 @@ export function renderIssue (issue, context) {
     return pre
   }
 
-  const timestring = function () {
+  function timestring () {
     const now = new Date()
     return '' + now.getTime()
     // http://www.w3schools.com/jsref/jsref_obj_date.asp
@@ -149,20 +168,14 @@ export function renderIssue (issue, context) {
   }
 
   function setPaneStyle () {
-    const types = store.findTypeURIs(issue)
-    let mystyle = 'padding: 0.5em 1.5em 1em 1.5em; '
-    let backgroundColor = null
-    for (const uri in types) {
-      backgroundColor = store.any(
-        store.sym(uri),
-        store.sym('http://www.w3.org/ns/ui#backgroundColor')
-      )
-      if (backgroundColor) break
-    }
-    backgroundColor = backgroundColor ? backgroundColor.value : '#eee' // default grey
-    mystyle += 'background-color: ' + backgroundColor + '; '
+    const backgroundColor = getBackgroundColorFromTypes(issue) || '#eee' // default grey
+    const mystyle0 = 'padding: 0.5em 1.5em 1em 1.5em; border: 0.7em;'
+    const mystyle = mystyle0 + 'border-color: ' + backgroundColor + '; '
     issueDiv.setAttribute('style', mystyle)
+    issueDiv.style.backgroundColor = 'white'
   }
+
+  /// ////////////// Body of renderIssue
 
   const dom = context.dom
   // eslint-disable-next-line no-use-before-define
@@ -174,10 +187,14 @@ export function renderIssue (issue, context) {
 
   const issueDiv = dom.createElement('div')
   const me = authn.currentUser()
+  const backgroundColor = getBackgroundColorFromTypes(issue) || 'white'
 
   setPaneStyle()
 
   authn.checkUser() // kick off async operation
+
+  const iconButton = issueDiv.appendChild(widgets.button(dom, iconForIssue(issue)))
+  widgets.makeDraggable(iconButton, issue) // Drag me wherever you need to do stuff with this issue
 
   const states = store.any(tracker, ns.wf('issueClass'))
   if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
@@ -199,13 +216,13 @@ export function renderIssue (issue, context) {
   issueDiv.appendChild(select)
 
   const cats = store.each(tracker, ns.wf('issueCategory')) // zero or more
-  for (let i = 0; i < cats.length; i++) {
+  for (const cat of cats) {
     issueDiv.appendChild(
       widgets.makeSelectForCategory(
         dom,
         store,
         issue,
-        cats[i],
+        cat,
         stateStore,
         function (ok, body) {
           if (ok) {
@@ -254,31 +271,17 @@ export function renderIssue (issue, context) {
 `
   const CORE_ISSUE_FORM = ns.wf('coreIsueForm')
   $rdf.parse(coreIssueFormText, store, CORE_ISSUE_FORM.doc().uri, 'text/turtle')
-  widgets.appendForm(
+  const form = widgets.appendForm(
     dom,
-    issueDiv,
+    null, // was: container
     {},
     issue,
     CORE_ISSUE_FORM,
     stateStore,
     complainIfBad
   )
-
-  // Descriptions can be long and are stored local to the issue
-  /*
-  issueDiv.appendChild(
-    widgets.makeDescription(
-      dom,
-      kb,
-      issue,
-      ns.wf('description'),
-      store,
-      function (ok, body) {
-        if (ok) setModifiedDate(store, kb, store)
-        else console.log('Failed to change description:\n' + body)
-      }
-    )
-  ) */
+  issueDiv.appendChild(form)
+  form.style.backgroundColor = backgroundColor
 
   // Assigned to whom?
 
@@ -299,20 +302,16 @@ export function renderIssue (issue, context) {
   // Anyone assigned to any issue we know about
 
   async function getPossibleAssignees () {
-    let devs = []
     const devGroups = store.each(issue, ns.wf('assigneeGroup'))
-    for (let i = 0; i < devGroups.length; i++) {
-      const group = devGroups[i]
-      await store.fetcher.load()
-      devs = devs.concat(store.each(group, ns.vcard('member')))
-    }
+    await store.fetcher.load(devGroups) // Load them all
+    const groupDevs = devGroups.map(group => store.each(group, ns.vcard('member'), null, group.doc())).flat()
     // Anyone who is a developer of any project which uses this tracker
     const proj = store.any(null, ns.doap('bug-database'), tracker) // What project?
     if (proj) {
       await store.fetcher.load(proj)
-      devs = devs.concat(store.each(proj, ns.doap('developer')))
     }
-    return devs
+    const projectDevs = proj ? store.each(proj, ns.doap('developer')) : []
+    return groupDevs.concat(projectDevs)
   }
 
   // Super issues first - like parent directories .. maybe use breadcrums from?? @@
@@ -354,27 +353,36 @@ export function renderIssue (issue, context) {
     }
   })
 
-  /*  The trees of super issues and subissues
+  /*  The trees of super-issues and sub-issues
   */
-  let subIssuePanel
+  function supersOver (issue, stack) {
+    stack = stack || []
+    const sup = store.any(null, ns.wf('dependent'), issue, issue.doc())
+    if (sup) return supersOver(sup, [sup].concat(stack))
+    return stack
+  }
   if (getOption(tracker, 'allowSubIssues')) {
-    if (!subIssuePanel) {
-      subIssuePanel = issueDiv.appendChild(dom.createElement('div'))
-      subIssuePanel.style = 'margin: 1em; padding: 1em;'
-    }
+    const subIssuePanel = issueDiv.appendChild(dom.createElement('div'))
+    subIssuePanel.style = 'margin: 1em; padding: 1em;'
 
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Super Issues'
     const listOfSupers = subIssuePanel.appendChild(dom.createElement('div'))
+    listOfSupers.style.display = 'flex'
     listOfSupers.refresh = function () {
-      utils.syncTableToArrayReOrdered(listOfSupers, store.each(null, ns.wf('dependent'), issue), renderSubIssue)
+      // const supers = store.each(null, ns.wf('dependent'), issue, issue.doc())
+      const supers = supersOver(issue)
+      utils.syncTableToArrayReOrdered(listOfSupers, supers, renderSubIssue)
     }
     listOfSupers.refresh()
 
     // Sub issues
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Sub Issues'
     const listOfSubs = subIssuePanel.appendChild(dom.createElement('div'))
+    listOfSubs.style.display = 'flex'
+    listOfSubs.style.flexDirection = 'reverse' // Or center
     listOfSubs.refresh = function () {
-      utils.syncTableToArrayReOrdered(listOfSubs, store.each(issue, ns.wf('dependent')), renderSubIssue)
+      const subs = store.each(issue, ns.wf('dependent'), null, issue.doc())
+      utils.syncTableToArrayReOrdered(listOfSubs, subs, renderSubIssue)
     }
     listOfSubs.refresh()
 
@@ -407,20 +415,20 @@ export function renderIssue (issue, context) {
       stateStore,
       complainIfBad
     )
+    // issueDiv.appendChild(renderSpacer(backgroundColor))
   }
 
   //   Comment/discussion area
 
-  const spacer = issueDiv.appendChild(dom.createElement('tr'))
-  spacer.setAttribute('style', 'height: 1em') // spacer and placeHolder
+  const spacer = issueDiv.appendChild(renderSpacer(dom, backgroundColor))
 
   const template = store.anyValue(tracker, ns.wf('issueURITemplate'))
   /*
-  var chatDocURITemplate = kb.anyValue(tracker, ns.wf('chatDocURITemplate')) // relaive to issue
+  var chatDocURITemplate = store.anyValue(tracker, ns.wf('chatDocURITemplate')) // relaive to issue
   var chat
   if (chatDocURITemplate) {
     let template = $rdf.uri.join(chatDocURITemplate, issue.uri) // Template is relative to issue
-    chat = kb.sym(expandTemplate(template))
+    chat = store.sym(expandTemplate(template))
   } else
   */
   let messageStore
@@ -440,7 +448,8 @@ export function renderIssue (issue, context) {
     } else {
       const discussion = messageArea(dom, store, issue, messageStore)
       issueDiv.insertBefore(discussion, spacer)
-    }
+      issueDiv.insertBefore(renderSpacer(dom, backgroundColor), discussion)
+    } // Not sure why  e stuck this in upwards rather than downwards
   })
 
   // Draggable attachment list
@@ -448,12 +457,11 @@ export function renderIssue (issue, context) {
   attachmentHint.innerHTML = `<h4>Attachments</h4>
     <p>Drag files, emails,
     web pages onto the paper clip, or click the file upload button.</p>`
-  let uploadFolderURI
-  if (issue.uri.endsWith('/index.ttl#this')) { // This has a whole folder to itself
-    uploadFolderURI = issue.uri.slice(0, 14) + 'Files/' // back to slash
-  } else { // like state.ttl#Iss1587852322438
-    uploadFolderURI = issue.dir().uri + 'Files/' + issue.uri.split('#')[1] + '/' // New folder for issue in file with others
-  }
+  const uploadFolderURI =
+     issue.uri.endsWith('/index.ttl#this') // This has a whole folder to itself
+       ? issue.uri.slice(0, 14) + 'Files/' // back to slash
+       : issue.dir().uri + 'Files/' + issue.uri.split('#')[1] + '/' // New folder for issue in file with others
+
   widgets.attachmentList(dom, issue, issueDiv, {
     doc: stateStore,
     promptIcon: icons.iconBase + 'noun_25830.svg',
