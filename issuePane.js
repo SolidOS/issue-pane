@@ -187,7 +187,7 @@ export default {
           await updater.update(deletables, insertables)
           alert('(Config file adjusted)')
         } catch (err) {
-          const msg = 'Config file cant be adjusted: ' + err
+          const msg = 'Config file cannot be adjusted: ' + err
           alert(msg)
           console.error(msg)
         }
