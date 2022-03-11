@@ -144,8 +144,8 @@ export default {
 
     /** Infer subclass from disjoint Union
     **
-    ** This is would not be needed if our query language
-    ** allowed is to query rdf Collection membership.
+    ** This would not be needed if our query language
+    ** allowed us to query RDF Collection membership.
     */
     function checkSubClasses (kb, tracker) {
       function checkOneSuperclass (klass) {
