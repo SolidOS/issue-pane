@@ -128,7 +128,7 @@ export default {
     const paneDiv = dom.createElement('div')
     context.paneDiv = paneDiv
     paneDiv.setAttribute('class', 'issuePane')
-    var refreshables = [] // Separate of widgets to be refreshed
+    var refreshables = [] // Separate widgets to be refreshed
     paneDiv.refresh = refreshPane
 
     function complain (message) {
