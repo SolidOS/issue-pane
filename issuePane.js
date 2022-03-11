@@ -379,7 +379,7 @@ export default {
 
     async function renderSettings (tracker) {
       const settingsDiv = dom.createElement('div')
-      // A registration control allows the to record this tracker in their type index
+      // A registration control allows the user to record this tracker in their type index
       const context = { dom, div: settingsDiv, noun: 'tracker' }
       UI.authn.registrationControl(context, tracker, ns.wf('Tracker')).then(_context2 => {
         const settingsForm = ns.wf('TrackerSettingsForm')
