@@ -10,10 +10,9 @@
  * @returns dom:Element
 */
 
-import * as UI from 'solid-ui'
-const kb = UI.store
-const ns = UI.ns
-const $rdf = UI.rdf
+import { ns, rdf, store, utils, widgets } from 'solid-ui'
+const kb = store
+const $rdf = rdf
 
 export function board (dom, columnValues, renderItem, options) {
   const board = dom.createElement('div')
@@ -27,7 +26,7 @@ export function board (dom, columnValues, renderItem, options) {
   const mainRow = table.appendChild(dom.createElement('tr'))
   columnValues.forEach(x => {
     const cell = headerRow.appendChild(dom.createElement('th'))
-    cell.textContent = UI.utils.label(x, true) // Initial capital
+    cell.textContent = utils.label(x, true) // Initial capital
     cell.subject = x
     cell.style = 'margin: 0.3em; padding: 0.5em 1em; font-treatment: bold; font-size: 120%;'
 
@@ -44,7 +43,7 @@ export function board (dom, columnValues, renderItem, options) {
     }
 
     if (options.columnDropHandler) {
-      UI.widgets.makeDropTarget(column, droppedURIHandler)
+      widgets.makeDropTarget(column, droppedURIHandler)
     }
   })
 
@@ -57,7 +56,7 @@ export function board (dom, columnValues, renderItem, options) {
     const classes = kb.each(item, ns.rdf('type'))
     const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => c)
 
-    table.appendChild(UI.widgets.personTR(dom, null, item))
+    table.appendChild(widgets.personTR(dom, null, item))
     table.subject = item
     table.style = 'margin: 1em;' // @@ use style.js
     const backgroundColor = catColors[0] || kb.any(category, ns.ui('backgroundColor'))
@@ -76,7 +75,7 @@ export function board (dom, columnValues, renderItem, options) {
     const actualRenderItem = renderItem || options.renderItem || defaultRenderItem
     function localRenderItem (subject) {
       const ele = actualRenderItem(subject)
-      UI.widgets.makeDraggable(ele, subject)
+      widgets.makeDraggable(ele, subject)
       ele.subject = subject
       return ele
     }
@@ -88,7 +87,7 @@ export function board (dom, columnValues, renderItem, options) {
         items = items.filter(options.filter)
       }
       const sortedItems = sortedBy(items, sortBy, now, true)
-      UI.utils.syncTableToArrayReOrdered(col, sortedItems, localRenderItem)
+      utils.syncTableToArrayReOrdered(col, sortedItems, localRenderItem)
     }
   }
 

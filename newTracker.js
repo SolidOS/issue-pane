@@ -1,8 +1,7 @@
-import * as UI from 'solid-ui'
+import { authn, ns, rdf, store } from 'solid-ui'
 
-const $rdf = UI.rdf
-const ns = UI.ns
-const kb = UI.store
+const $rdf = rdf
+const kb = store
 const updater = kb.updater
 
 /* Button for making a whole new tracker
@@ -16,7 +15,7 @@ export function newTrackerButton (thisTracker, context) {
   }
 
   // const dom = context.dom
-  const button = UI.authn.newAppInstance(context.dom, { noun: 'tracker' }, function (
+  const button = authn.newAppInstance(context.dom, { noun: 'tracker' }, function (
     ws,
     base
   ) {
@@ -28,14 +27,13 @@ export function newTrackerButton (thisTracker, context) {
       if (u === stateStore.uri) return newStore // special case
       if (u.slice(0, oldBase.length) === oldBase) {
         u = base + u.slice(oldBase.length)
-        $rdf.log.debug(' Map ' + x.uri + ' to ' + u)
       }
       return kb.sym(u)
     }
 
     const appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
     // console.log("Ready to make new instance at "+ws)
-    const sp = UI.ns.space
+    const sp = ns.space
     const kb = context.session.store
 
     if (!base) {
@@ -80,9 +78,9 @@ export function newTrackerButton (thisTracker, context) {
 
     // Keep a paper trail   @@ Revisit when we have non-public ones @@ Privacy
     //
-    kb.add(newTracker, UI.ns.space('inspiration'), thisTracker, stateStore)
+    kb.add(newTracker, ns.space('inspiration'), thisTracker, stateStore)
 
-    kb.add(newTracker, UI.ns.space('inspiration'), thisTracker, there)
+    kb.add(newTracker, ns.space('inspiration'), thisTracker, there)
 
     // $rdf.log.debug("\n Ready to put " + kb.statementsMatching(undefined, undefined, undefined, there)); //@@
 
