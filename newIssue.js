@@ -1,9 +1,8 @@
 //  Form to collect data about a New Issue
 //
-import * as UI from 'solid-ui'
+import { ns, rdf, utils } from 'solid-ui'
 
-const $rdf = UI.rdf
-const ns = UI.ns
+const $rdf = rdf
 
 export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
   const form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error
@@ -87,7 +86,7 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
   }
 
   const states = kb.any(tracker, ns.wf('issueClass'))
-  const classLabel = UI.utils.label(states)
+  const classLabel = utils.label(states)
   form.innerHTML =
     '<h2>Add new ' +
     (superIssue ? 'sub ' : '') +
