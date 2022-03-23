@@ -5,7 +5,6 @@
  **
  */
 
-
 import { create, login, ns, icons, rdf, tabs, table, utils, widgets } from 'solid-ui'
 import { store, authn } from 'solid-logic'
 import { board } from './board' // @@ will later be in solid-UI
