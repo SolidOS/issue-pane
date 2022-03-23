@@ -15,6 +15,7 @@ import { trackerSettingsFormText } from './trackerSettingsForm.js'
 // import { trackerInstancesFormText } from './trackerInstancesForm.js'
 
 const $rdf = rdf
+const kb = store
 
 // const MY_TRACKERS_ICON = UI.icons.iconBase + 'noun_Document_998605.svg'
 // const TRACKER_ICON = UI.icons.iconBase + 'noun_list_638112'
@@ -34,10 +35,10 @@ export default {
 
   // Does the subject deserve an issue pane?
   label: function (subject, _context) {
-    const t = store.findTypeURIs(subject)
+    const t = kb.findTypeURIs(subject)
     if (
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
-      store.holds(subject, ns.wf('tracker'))
+      kb.holds(subject, ns.wf('tracker'))
     ) { return 'issue' } // in case ontology not available
     if (t['http://www.w3.org/2005/01/wf/flow#Tracker']) return 'tracker'
     // Later: Person. For a list of things assigned to them,
@@ -54,40 +55,40 @@ export default {
       const docs = deletions.concat(insertions).map(st => st.why)
       const uniqueDocs = Array.from(new Set(docs))
       const updates = uniqueDocs.map(doc =>
-        store.updater.update(deletions.filter(st => st.why.sameTerm(doc)),
+        kb.updater.update(deletions.filter(st => st.why.sameTerm(doc)),
           insertions.filter(st => st.why.sameTerm(doc))))
       return Promise.all(updates)
     }
 
-    const store = context.session.store
+    const kb = context.session.store
     let stateStore
     if (options.newInstance) {
-      stateStore = store.sym(options.newInstance.doc().uri + '_state.ttl')
+      stateStore = kb.sym(options.newInstance.doc().uri + '_state.ttl')
     } else {
-      options.newInstance = store.sym(options.newBase + 'index.ttl#this')
-      stateStore = store.sym(options.newBase + 'state.ttl')
+      options.newInstance = kb.sym(options.newBase + 'index.ttl#this')
+      stateStore = kb.sym(options.newBase + 'state.ttl')
     }
     const tracker = options.newInstance
     const appDoc = tracker.doc()
 
     const me = authn.currentUser()
     if (me) {
-      store.add(tracker, ns.dc('author'), me, appDoc)
+      kb.add(tracker, ns.dc('author'), me, appDoc)
     }
 
-    store.add(tracker, ns.rdf('type'), ns.wf('Tracker'), appDoc)
-    store.add(tracker, ns.dc('created'), new Date(), appDoc)
+    kb.add(tracker, ns.rdf('type'), ns.wf('Tracker'), appDoc)
+    kb.add(tracker, ns.dc('created'), new Date(), appDoc)
 
     // @@ to do --- adk user what sort of tracker they want
 
-    store.add(tracker, ns.wf('issueClass'), ns.wf('Task'), appDoc) // @@ ask user
-    store.add(tracker, ns.wf('initialState'), ns.wf('Open'), appDoc)
-    store.add(tracker, ns.wf('stateStore'), stateStore, appDoc)
-    store.add(tracker, ns.wf('assigneeClass'), ns.foaf('Person'), appDoc) // @@ set to people in the meeting?
+    kb.add(tracker, ns.wf('issueClass'), ns.wf('Task'), appDoc) // @@ ask user
+    kb.add(tracker, ns.wf('initialState'), ns.wf('Open'), appDoc)
+    kb.add(tracker, ns.wf('stateStore'), stateStore, appDoc)
+    kb.add(tracker, ns.wf('assigneeClass'), ns.foaf('Person'), appDoc) // @@ set to people in the meeting?
 
-    store.add(tracker, ns.wf('stateStore'), stateStore, stateStore) // Back Link
+    kb.add(tracker, ns.wf('stateStore'), stateStore, stateStore) // Back Link
 
-    const ins = store.statementsMatching(undefined, undefined, undefined, appDoc).concat(store.statementsMatching(undefined, undefined, undefined, stateStore))
+    const ins = kb.statementsMatching(undefined, undefined, undefined, appDoc).concat(kb.statementsMatching(undefined, undefined, undefined, stateStore))
     try {
       await updateMany([], ins)
     } catch (err) {
@@ -95,7 +96,7 @@ export default {
     }
     /*
     try {
-      await store.updater.updateMany([], store.statementsMatching(undefined, undefined, undefined, stateStore))
+      await kb.updater.updateMany([], kb.statementsMatching(undefined, undefined, undefined, stateStore))
     } catch (err) {
       return widgets.complain(context, 'Error writing tracker state file: ' + err)
     }
@@ -137,24 +138,24 @@ export default {
     ** This is would not be needed if our quey language
     ** allowed is to query ardf Collection membership.
     */
-    async function fixSubClasses (store, tracker) { // 20220228
+    async function fixSubClasses (kb, tracker) { // 20220228
       async function checkOneSuperclass (klass) {
-        const collection = store.any(klass, ns.owl('disjointUnionOf'), null, doc)
+        const collection = kb.any(klass, ns.owl('disjointUnionOf'), null, doc)
         if (!collection) throw new Error(`Classification ${klass} has no disjointUnionOf`)
         if (!collection.elements) throw new Error(`Classification ${klass} has no array`)
         const needed = new Set(collection.elements.map(x => x.uri))
-        const existing = new Set(store.each(null, ns.rdfs('subClassOf'), klass, doc).map(x => x.uri))
+        const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, doc).map(x => x.uri))
 
         const superfluous = [...existing].filter(sub => !needed.has(sub))
-        const deleteActions = superfluous.map(sub => { return { action: 'delete', st: $rdf.st(store.sym(sub), ns.rdfs('subClassOf'), klass, doc) } })
+        const deleteActions = superfluous.map(sub => { return { action: 'delete', st: $rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc) } })
 
         const missing = [...needed].filter(sub => !existing.has(sub))
-        const insertActions = missing.map(sub => { return { action: 'insert', st: $rdf.st(store.sym(sub), ns.rdfs('subClassOf'), klass, doc) } })
+        const insertActions = missing.map(sub => { return { action: 'insert', st: $rdf.st(kb.sym(sub), ns.rdfs('subClassOf'), klass, doc) } })
         return deleteActions.concat(insertActions)
       }
       const doc = tracker.doc()
-      const states = store.any(tracker, ns.wf('issueClass'))
-      const cats = store.each(tracker, ns.wf('issueCategory')).concat([states])
+      const states = kb.any(tracker, ns.wf('issueClass'))
+      const cats = kb.each(tracker, ns.wf('issueCategory')).concat([states])
       let damage = [] // to make totally functionaly  need to deal with map over async.
       for (const klass of cats) {
         damage = damage.concat(await checkOneSuperclass(klass))
@@ -165,7 +166,7 @@ export default {
         // alert(`Internal error: s${damage} subclasses inconsistences!`)
         console.log('Damage:', damage)
         if (confirm(`Fix ${damage} inconsistent subclasses in tracker config?`)) {
-          await store.updater.update(deletables, insertables)
+          await kb.updater.update(deletables, insertables)
         }
       }
     }
@@ -173,32 +174,32 @@ export default {
     /** /////////////////////////// Board
     */
     function renderBoard (tracker, klass) {
-      const states = store.any(tracker, ns.wf('issueClass'))
+      const states = kb.any(tracker, ns.wf('issueClass'))
       klass = klass || states // default to states
       const doingStates = klass.sameTerm(states)
 
       // These are states we will show by default: the open issues.
-      const stateArray = store.any(klass, ns.owl('disjointUnionOf'))
+      const stateArray = kb.any(klass, ns.owl('disjointUnionOf'))
       if (!stateArray) {
         return complain(`Configuration error: state ${states} does not have substates`)
       }
       let columnValues = stateArray.elements
       if (doingStates && columnValues.length > 2 // and there are more than two
       ) { // strip out closed states
-        columnValues = columnValues.filter(state => store.holds(state, ns.rdfs('subClassOf'), ns.wf('Open')) || state.sameTerm(ns.wf('Open')))
+        columnValues = columnValues.filter(state => kb.holds(state, ns.rdfs('subClassOf'), ns.wf('Open')) || state.sameTerm(ns.wf('Open')))
       }
 
       async function columnDropHandler (issue, newState) {
         const currentState = getState(issue, klass)
-        const tracker = store.the(issue, ns.wf('tracker'), null, issue.doc())
-        const stateStore = store.any(tracker, ns.wf('stateStore'))
+        const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
+        const stateStore = kb.any(tracker, ns.wf('stateStore'))
 
         if (newState.sameTerm(currentState)) {
           // alert('Same state ' + utils.label(currentState)) // @@ remove
           return
         }
         try {
-          await store.updater.update(
+          await kb.updater.update(
             [$rdf.st(issue, ns.rdf('type'), currentState, stateStore)],
             [$rdf.st(issue, ns.rdf('type'), newState, stateStore)])
         } catch (err) {
@@ -208,7 +209,7 @@ export default {
       }
 
       function isOpen (issue) {
-        const types = store.findTypeURIs(issue)
+        const types = kb.findTypeURIs(issue)
         return !!types[ns.wf('Open').uri]
       }
 
@@ -229,7 +230,7 @@ export default {
       const refreshButton = widgets.button(dom, icons.iconBase + 'noun_479395.svg',
         'refresh table', async _event => {
           try {
-            await store.fetcher.load(stateStore, { force: true, clearPreviousData: true })
+            await kb.fetcher.load(stateStore, { force: true, clearPreviousData: true })
           } catch (err) {
             alert(err)
             return
@@ -245,8 +246,8 @@ export default {
         query.pat.optional.push(clause)
         return clause
       }
-      const states = store.any(subject, ns.wf('issueClass'))
-      const cats = store.each(tracker, ns.wf('issueCategory')) // zero or more
+      const states = kb.any(subject, ns.wf('issueClass'))
+      const cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
       const vars = ['issue', 'state', 'created']
       const query = new $rdf.Query(utils.label(subject))
       for (let i = 0; i < cats.length; i++) {
@@ -270,7 +271,7 @@ export default {
         clause.add(v['_cat_' + i], ns.rdfs('subClassOf'), cats[i])
       }
 
-      const propertyList = store.any(tracker, ns.wf('propertyList')) // List of extra properties
+      const propertyList = kb.any(tracker, ns.wf('propertyList')) // List of extra properties
       if (propertyList) {
         const properties = propertyList.elements
         for (let p = 0; p < properties.length; p++) {
@@ -286,10 +287,10 @@ export default {
       }
 
       const selectedStates = {}
-      const possible = store.each(undefined, ns.rdfs('subClassOf'), states)
+      const possible = kb.each(undefined, ns.rdfs('subClassOf'), states)
       possible.forEach(function (s) {
         if (
-          store.holds(s, ns.rdfs('subClassOf'), ns.wf('Open')) ||
+          kb.holds(s, ns.rdfs('subClassOf'), ns.wf('Open')) ||
           s.sameTerm(ns.wf('Open'))
         ) {
           selectedStates[s.uri] = true
@@ -313,7 +314,7 @@ export default {
           '?state': { initialSelection: selectedStates, label: 'Status' }
         }
       })
-      const stateStore = store.any(subject, ns.wf('stateStore'))
+      const stateStore = kb.any(subject, ns.wf('stateStore'))
       tableDiv.appendChild(tableRefreshButton(stateStore, tableDiv))
       return tableDiv
     }
@@ -345,7 +346,7 @@ export default {
         /* // keep this code in case we need a form
         const InstancesForm = ns.wf('TrackerInstancesForm')
         const text = trackerInstancesFormText
-        $rdf.parse(text, store, InstancesForm.doc().uri, 'text/turtle')
+        $rdf.parse(text, kb, InstancesForm.doc().uri, 'text/turtle')
         widgets.appendForm(dom, instancesDiv, {}, tracker, InstancesForm,
           tracker.doc(), complainIfBad)
         */
@@ -354,12 +355,12 @@ export default {
     }
     function renderSettings (tracker) {
       const settingsDiv = dom.createElement('div')
-      const states = store.any(tracker, ns.wf('issueClass'))
+      const states = kb.any(tracker, ns.wf('issueClass'))
       const views = [tableView, states] // Possible default views
-        .concat(store.each(tracker, ns.wf('issueCategory')))
+        .concat(kb.each(tracker, ns.wf('issueCategory')))
       const box = settingsDiv.appendChild(dom.createElement('div'))
-      const lhs = widgets.renderNameValuePair(dom, store, box, null, 'Default view') // @@ use a predicate?
-      lhs.appendChild(widgets.makeSelectForOptions(dom, store, tracker,
+      const lhs = widgets.renderNameValuePair(dom, kb, box, null, 'Default view') // @@ use a predicate?
+      lhs.appendChild(widgets.makeSelectForOptions(dom, kb, tracker,
         ns.wf('defaultView'),
         views, {}, tracker.doc()))
 
@@ -368,7 +369,7 @@ export default {
       login.registrationControl(context, tracker, ns.wf('Tracker')).then(_context2 => {
         const settingsForm = ns.wf('TrackerSettingsForm')
         const text = trackerSettingsFormText
-        $rdf.parse(text, store, settingsForm.doc().uri, 'text/turtle')
+        $rdf.parse(text, kb, settingsForm.doc().uri, 'text/turtle')
         widgets.appendForm(dom, settingsDiv, {}, tracker, settingsForm,
           tracker.doc(), complainIfBad)
       })
@@ -386,32 +387,32 @@ export default {
           ele.appendChild(renderSettings(tracker))
         } else if (object.sameTerm(instancesView)) {
           ele.appendChild(renderInstances(ns.wf('Tracker')))
-        } else if ((store.holds(tracker, ns.wf('issueCategory'), object)) ||
-                   (store.holds(tracker, ns.wf('issueClass'), object))) {
+        } else if ((kb.holds(tracker, ns.wf('issueCategory'), object)) ||
+                   (kb.holds(tracker, ns.wf('issueClass'), object))) {
           ele.appendChild(renderBoard(tracker, object))
         } else {
           throw new Error('Unexpected tab type: ' + object)
         }
       }
-      const states = store.any(tracker, ns.wf('issueClass'))
+      const states = kb.any(tracker, ns.wf('issueClass'))
       const items = [instancesView, tableView, states]
-        .concat(store.each(tracker, ns.wf('issueCategory')))
+        .concat(kb.each(tracker, ns.wf('issueCategory')))
       items.push(settingsView)
-      const selectedTab = store.any(tracker, ns.wf('defaultView'), null, tracker.doc()) || tableView
+      const selectedTab = kb.any(tracker, ns.wf('defaultView'), null, tracker.doc()) || tableView
       const options = { renderMain, items, selectedTab }
 
       // Add stuff to the ontologies which we believe but they don't say
       const doc = instancesView.doc()
-      store.add(instancesView, ns.rdfs('label'), 'My Trackers', doc) // @@ squatting on wf ns
-      store.add(settingsView, ns.rdfs('label'), 'Settings', doc) // @@ squatting on wf ns
-      store.add(states, ns.rdfs('label'), 'By State', doc) // @@ squatting on wf ns
+      kb.add(instancesView, ns.rdfs('label'), 'My Trackers', doc) // @@ squatting on wf ns
+      kb.add(settingsView, ns.rdfs('label'), 'Settings', doc) // @@ squatting on wf ns
+      kb.add(states, ns.rdfs('label'), 'By State', doc) // @@ squatting on wf ns
 
       const myTabs = tabs.tabWidget(options)
       return myTabs
     }
 
     async function renderSingleIssue () {
-      tracker = store.any(subject, ns.wf('tracker'))
+      tracker = kb.any(subject, ns.wf('tracker'))
       if (!tracker) throw new Error('This issue ' + subject + 'has no tracker')
 
       // Much data is in the tracker instance, so wait for the data from it
@@ -422,7 +423,7 @@ export default {
         return complain(msg)
       }
 
-      const stateStore = store.any(tracker, ns.wf('stateStore'))
+      const stateStore = kb.any(tracker, ns.wf('stateStore'))
       if (!stateStore) {
         return complain('Tracker has no state store: ' + tracker)
       }
@@ -446,14 +447,14 @@ export default {
       tracker = subject
 
       try {
-        await fixSubClasses(store, tracker)
+        await fixSubClasses(kb, tracker)
       } catch (err) {
         console.log('@@@ Error fixing subclasses in config: ' + err)
       }
 
-      const states = store.any(subject, ns.wf('issueClass'))
+      const states = kb.any(subject, ns.wf('issueClass'))
       if (!states) throw new Error('This tracker has no issueClass')
-      const stateStore = store.any(subject, ns.wf('stateStore'))
+      const stateStore = kb.any(subject, ns.wf('stateStore'))
       if (!stateStore) throw new Error('This tracker has no stateStore')
 
       // const me = await authn.currentUser()
@@ -482,7 +483,7 @@ export default {
         'click',
         function (_event) {
           newIssueButton.disabled = true
-          container.appendChild(newIssueForm(dom, store, tracker, null, showNewIssue))
+          container.appendChild(newIssueForm(dom, kb, tracker, null, showNewIssue))
         },
         false
       )
@@ -518,26 +519,26 @@ export default {
     const settingsView = ns.wf('SettingsView')
     const instancesView = ns.wf('InstancesView')
 
-    const updater = store.updater
-    const t = store.findTypeURIs(subject)
+    const updater = kb.updater
+    const t = kb.findTypeURIs(subject)
     let tracker
 
     // Whatever we are rendering, lets load the ontology
     const flowOntology = ns.wf('').doc()
-    if (!store.holds(undefined, undefined, undefined, flowOntology)) {
+    if (!kb.holds(undefined, undefined, undefined, flowOntology)) {
       // If not loaded already
-      $rdf.parse(require('./wf.js'), store, flowOntology.uri, 'text/turtle') // Load ontology directly
+      $rdf.parse(require('./wf.js'), kb, flowOntology.uri, 'text/turtle') // Load ontology directly
     }
     const userInterfaceOntology = ns.ui('').doc()
-    if (!store.holds(undefined, undefined, undefined, userInterfaceOntology)) {
+    if (!kb.holds(undefined, undefined, undefined, userInterfaceOntology)) {
       // If not loaded already
-      $rdf.parse(require('./ui.js'), store, userInterfaceOntology.uri, 'text/turtle') // Load ontology directly
+      $rdf.parse(require('./ui.js'), kb, userInterfaceOntology.uri, 'text/turtle') // Load ontology directly
     }
 
     // Render a single issue
     if (
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
-      store.holds(subject, ns.wf('tracker'))
+      kb.holds(subject, ns.wf('tracker'))
     ) {
       renderSingleIssue().then(() => console.log('Single issue rendered'))
     } else if (t['http://www.w3.org/2005/01/wf/flow#Tracker']) {
@@ -567,7 +568,7 @@ export default {
 
       loginOutButton = authn.loginStatusBox(dom, webIdUri => {
         if (webIdUri) {
-          context.me = store.sym(webIdUri)
+          context.me = kb.sym(webIdUri)
           console.log('Web ID set from login button: ' + webIdUri)
           paneDiv.removeChild(loginOutButton)
           // enable things
