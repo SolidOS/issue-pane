@@ -1,8 +1,9 @@
-import { authn, ns, rdf, store } from 'solid-ui'
+import * as UI from 'solid-ui'
+import { store } from 'solid-logic'
 
-const $rdf = rdf
-const kb = store
-const updater = kb.updater
+const $rdf = UI.rdf
+const ns = UI.ns
+const updater = store.updater
 
 /* Button for making a whole new tracker
 ** This is the least tesetd part of the tracker system at the moment.
@@ -15,7 +16,7 @@ export function newTrackerButton (thisTracker, context) {
   }
 
   // const dom = context.dom
-  const button = authn.newAppInstance(context.dom, { noun: 'tracker' }, function (
+  const button = UI.login.newAppInstance(context.dom, { noun: 'tracker' }, function (
     ws,
     base
   ) {
@@ -28,16 +29,16 @@ export function newTrackerButton (thisTracker, context) {
       if (u.slice(0, oldBase.length) === oldBase) {
         u = base + u.slice(oldBase.length)
       }
-      return kb.sym(u)
+      return store.sym(u)
     }
 
     const appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
     // console.log("Ready to make new instance at "+ws)
-    const sp = ns.space
-    const kb = context.session.store
+    const sp = UI.ns.space
+    const store = context.session.store
 
     if (!base) {
-      base = kb.any(ws, sp('uriPrefix')).value
+      base = store.any(ws, sp('uriPrefix')).value
       if (base.slice(-1) !== '/') {
         $rdf.log.error(
           appPathSegment + ': No / at end of uriPrefix ' + base
@@ -50,8 +51,8 @@ export function newTrackerButton (thisTracker, context) {
       }
     }
 
-    const stateStore = kb.any(thisTracker, ns.wf('stateStore'))
-    const newStore = kb.sym(base + 'store.ttl')
+    const stateStore = store.any(thisTracker, ns.wf('stateStore'))
+    const newStore = store.sym(base + 'store.ttl')
 
     const here = thisTracker.doc()
 
@@ -60,7 +61,7 @@ export function newTrackerButton (thisTracker, context) {
     const there = morph(here)
     const newTracker = morph(thisTracker)
 
-    const myConfig = kb.statementsMatching(
+    const myConfig = store.statementsMatching(
       undefined,
       undefined,
       undefined,
@@ -68,7 +69,7 @@ export function newTrackerButton (thisTracker, context) {
     )
     for (let i = 0; i < myConfig.length; i++) {
       const st = myConfig[i]
-      kb.add(
+      store.add(
         morph(st.subject),
         morph(st.predicate),
         morph(st.object),
@@ -78,15 +79,15 @@ export function newTrackerButton (thisTracker, context) {
 
     // Keep a paper trail   @@ Revisit when we have non-public ones @@ Privacy
     //
-    kb.add(newTracker, ns.space('inspiration'), thisTracker, stateStore)
+    store.add(newTracker, UI.ns.space('inspiration'), thisTracker, stateStore)
 
-    kb.add(newTracker, ns.space('inspiration'), thisTracker, there)
+    store.add(newTracker, UI.ns.space('inspiration'), thisTracker, there)
 
-    // $rdf.log.debug("\n Ready to put " + kb.statementsMatching(undefined, undefined, undefined, there)); //@@
+    // $rdf.log.debug("\n Ready to put " + store.statementsMatching(undefined, undefined, undefined, there)); //@@
 
     updater.put(
       there,
-      kb.statementsMatching(undefined, undefined, undefined, there),
+      store.statementsMatching(undefined, undefined, undefined, there),
       'text/turtle',
       function (uri2, ok, message) {
         if (ok) {

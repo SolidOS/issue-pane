@@ -1,10 +1,10 @@
 // All the UI for a single issue, without store load or listening for changes
 //
-import { authn, icons, messageArea, ns, rdf, store, style, utils, widgets } from 'solid-ui'
+import { icons, messageArea, ns, rdf, style, utils, widgets } from 'solid-ui'
+import { authn, store } from 'solid-logic'
 import { newIssueForm } from './newIssue'
 
 const $rdf = rdf
-const kb = store
 
 const SET_MODIFIED_DATES = false
 
@@ -18,7 +18,7 @@ function complain (message, context) {
 }
 
 export function isOpen (issue) {
-  const types = kb.findTypeURIs(issue)
+  const types = store.findTypeURIs(issue)
   return !!types[ns.wf('Open').uri]
 }
 
@@ -26,13 +26,13 @@ export function iconForIssue (issue) {
   return isOpen(issue) ? TASK_ICON : CLOSED_TASK_ICON
 }
 export function getState (issue, classification) {
-  const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
-  const states = kb.any(tracker, ns.wf('issueClass'))
+  const tracker = store.the(issue, ns.wf('tracker'), null, issue.doc())
+  const states = store.any(tracker, ns.wf('issueClass'))
   classification = classification || states
-  const types = kb.each(issue, ns.rdf('type'))
-    .filter(ty => kb.holds(ty, ns.rdfs('subClassOf'), classification))
+  const types = store.each(issue, ns.rdf('type'))
+    .filter(ty => store.holds(ty, ns.rdfs('subClassOf'), classification))
   if (types.length !== 1) {
-    // const initialState = kb.any(tracker, ns.wf('initialState')) No do NOT default
+    // const initialState = store.any(tracker, ns.wf('initialState')) No do NOT default
     // if (initialState) return initialState
     throw new Error('Issue must have one type as state: ' + types.length)
   }
@@ -40,8 +40,8 @@ export function getState (issue, classification) {
 }
 
 export function getBackgroundColorFromTypes (issue) {
-  const classes = kb.each(issue, ns.rdf('type')) // @@ pick cats in order then state
-  const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
+  const classes = store.each(issue, ns.rdf('type')) // @@ pick cats in order then state
+  const catColors = classes.map(cat => store.any(cat, ns.ui('backgroundColor'))).filter(c => !!c)
 
   if (catColors.length) return catColors[0].value // pick first one
   return null
@@ -59,7 +59,7 @@ export function renderIssueCard (issue, context) {
   const card = dom.createElement('div')
   const table = card.appendChild(dom.createElement('table'))
   table.style.width = '100%'
-  const options = { draggable: false } // Let the baord make the whole card draggable
+  const options = { draggable: false } // Let the board make the whole card draggable
   table.appendChild(widgets.personTR(dom, null, issue, options))
   table.subject = issue
   card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
@@ -79,7 +79,7 @@ export function renderIssueCard (issue, context) {
   if (uncategorized) {
     const deleteButton = widgets.deleteButtonWithCheck(dom, buttonsCell, 'issue', async function () { // noun?
       try {
-        await kb.updater.update(kb.connectedStatements(issue))
+        await store.updater.update(store.connectedStatements(issue))
       } catch (err) {
         complain(`Unable to delete issue: ${err}`, context)
       }
@@ -122,15 +122,15 @@ function renderSpacer (dom, backgroundColor) {
 
 export function renderIssue (issue, context) {
   // Don't bother changing the last modified dates of things: save time
-  function setModifiedDate (subj, kb, doc) {
+  function setModifiedDate (subj, store, doc) {
     if (SET_MODIFIED_DATES) {
       if (!getOption(tracker, 'trackLastModified')) return
-      const deletions = kb.statementsMatching(issue, ns.dct('modified'))
-        .concat(kb.statementsMatching(issue, ns.wf('modifiedBy'))
+      const deletions = store.statementsMatching(issue, ns.dct('modified'))
+        .concat(store.statementsMatching(issue, ns.wf('modifiedBy'))
         )
       const insertions = [$rdf.st(issue, ns.dct('modified'), new Date(), doc)]
       if (me) insertions.push($rdf.st(issue, ns.wf('modifiedBy'), me, doc))
-      kb.updater.update(deletions, insertions, function (_uri, _ok, _body) {})
+      store.updater.update(deletions, insertions, function (_uri, _ok, _body) {})
     }
   }
 
@@ -163,7 +163,7 @@ export function renderIssue (issue, context) {
   }
   function getOption (tracker, option) {
     // eg 'allowSubIssues'
-    const opt = kb.any(tracker, ns.ui(option))
+    const opt = store.any(tracker, ns.ui(option))
     return !!(opt && opt.value)
   }
 
@@ -178,9 +178,11 @@ export function renderIssue (issue, context) {
   /// ////////////// Body of renderIssue
 
   const dom = context.dom
-  const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
+  // eslint-disable-next-line no-use-before-define
+  const tracker = store.the(issue, ns.wf('tracker'), null, issue.doc())
   if (!tracker) throw new Error('No tracker')
-  const stateStore = kb.any(tracker, ns.wf('stateStore'))
+  // eslint-disable-next-line no-use-before-define
+  const stateStore = store.any(tracker, ns.wf('stateStore'))
   const store = issue.doc()
 
   const issueDiv = dom.createElement('div')
@@ -194,17 +196,17 @@ export function renderIssue (issue, context) {
   const iconButton = issueDiv.appendChild(widgets.button(dom, iconForIssue(issue)))
   widgets.makeDraggable(iconButton, issue) // Drag me wherever you need to do stuff with this issue
 
-  const states = kb.any(tracker, ns.wf('issueClass'))
+  const states = store.any(tracker, ns.wf('issueClass'))
   if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
   const select = widgets.makeSelectForCategory(
     dom,
-    kb,
+    store,
     issue,
     states,
     stateStore,
     function (ok, body) {
       if (ok) {
-        setModifiedDate(store, kb, store)
+        setModifiedDate(store, store, store)
         widgets.refreshTree(issueDiv)
       } else {
         console.log('Failed to change state:\n' + body)
@@ -213,18 +215,18 @@ export function renderIssue (issue, context) {
   )
   issueDiv.appendChild(select)
 
-  const cats = kb.each(tracker, ns.wf('issueCategory')) // zero or more
+  const cats = store.each(tracker, ns.wf('issueCategory')) // zero or more
   for (const cat of cats) {
     issueDiv.appendChild(
       widgets.makeSelectForCategory(
         dom,
-        kb,
+        store,
         issue,
         cat,
         stateStore,
         function (ok, body) {
           if (ok) {
-            setModifiedDate(store, kb, store)
+            setModifiedDate(store, store, store)
             widgets.refreshTree(issueDiv)
           } else {
             console.log('Failed to change category:\n' + body)
@@ -268,7 +270,7 @@ export function renderIssue (issue, context) {
     wf:Task     :creationForm core:coreIsueForm .
 `
   const CORE_ISSUE_FORM = ns.wf('coreIsueForm')
-  $rdf.parse(coreIssueFormText, kb, CORE_ISSUE_FORM.doc().uri, 'text/turtle')
+  $rdf.parse(coreIssueFormText, store, CORE_ISSUE_FORM.doc().uri, 'text/turtle')
   const form = widgets.appendForm(
     dom,
     null, // was: container
@@ -283,11 +285,11 @@ export function renderIssue (issue, context) {
 
   // Assigned to whom?
 
-  const assignments = kb.statementsMatching(issue, ns.wf('assignee'))
+  const assignments = store.statementsMatching(issue, ns.wf('assignee'))
   if (assignments.length > 1) {
     say('Weird, was assigned to more than one person. Fixing ..')
     const deletions = assignments.slice(1)
-    kb.updater.update(deletions, [], function (uri, ok, body) {
+    store.updater.update(deletions, [], function (uri, ok, body) {
       if (ok) {
         say('Now fixed.')
       } else {
@@ -300,15 +302,15 @@ export function renderIssue (issue, context) {
   // Anyone assigned to any issue we know about
 
   async function getPossibleAssignees () {
-    const devGroups = kb.each(issue, ns.wf('assigneeGroup'))
-    await kb.fetcher.load(devGroups) // Load them all
-    const groupDevs = devGroups.map(group => kb.each(group, ns.vcard('member'), null, group.doc())).flat()
+    const devGroups = store.each(issue, ns.wf('assigneeGroup'))
+    await store.fetcher.load(devGroups) // Load them all
+    const groupDevs = devGroups.map(group => store.each(group, ns.vcard('member'), null, group.doc())).flat()
     // Anyone who is a developer of any project which uses this tracker
-    const proj = kb.any(null, ns.doap('bug-database'), tracker) // What project?
+    const proj = store.any(null, ns.doap('bug-database'), tracker) // What project?
     if (proj) {
-      await kb.fetcher.load(proj)
+      await store.fetcher.load(proj)
     }
-    const projectDevs = proj ? kb.each(proj, ns.doap('developer')) : []
+    const projectDevs = proj ? store.each(proj, ns.doap('developer')) : []
     return groupDevs.concat(projectDevs)
   }
 
@@ -321,7 +323,7 @@ export function renderIssue (issue, context) {
   getPossibleAssignees().then(devs => {
     if (devs.length) {
       devs.forEach(function (person) {
-        kb.fetcher.lookUpThing(person)
+        store.fetcher.lookUpThing(person)
       }) // best effort async for names etc
       const opts = {
         // 'mint': '** Add new person **',
@@ -336,14 +338,14 @@ export function renderIssue (issue, context) {
       issueDiv.appendChild(
         widgets.makeSelectForOptions(
           dom,
-          kb,
+          store,
           issue,
           ns.wf('assignee'),
           devs,
           opts,
           store,
           function (ok, body) {
-            if (ok) setModifiedDate(store, kb, store)
+            if (ok) setModifiedDate(store, store, store)
             else console.log('Failed to change assignee:\n' + body)
           }
         )
@@ -355,7 +357,7 @@ export function renderIssue (issue, context) {
   */
   function supersOver (issue, stack) {
     stack = stack || []
-    const sup = kb.any(null, ns.wf('dependent'), issue, issue.doc())
+    const sup = store.any(null, ns.wf('dependent'), issue, issue.doc())
     if (sup) return supersOver(sup, [sup].concat(stack))
     return stack
   }
@@ -367,7 +369,7 @@ export function renderIssue (issue, context) {
     const listOfSupers = subIssuePanel.appendChild(dom.createElement('div'))
     listOfSupers.style.display = 'flex'
     listOfSupers.refresh = function () {
-      // const supers = kb.each(null, ns.wf('dependent'), issue, issue.doc())
+      // const supers = store.each(null, ns.wf('dependent'), issue, issue.doc())
       const supers = supersOver(issue)
       utils.syncTableToArrayReOrdered(listOfSupers, supers, renderSubIssue)
     }
@@ -379,7 +381,7 @@ export function renderIssue (issue, context) {
     listOfSubs.style.display = 'flex'
     listOfSubs.style.flexDirection = 'reverse' // Or center
     listOfSubs.refresh = function () {
-      const subs = kb.each(issue, ns.wf('dependent'), null, issue.doc())
+      const subs = store.each(issue, ns.wf('dependent'), null, issue.doc())
       utils.syncTableToArrayReOrdered(listOfSubs, subs, renderSubIssue)
     }
     listOfSubs.refresh()
@@ -393,7 +395,7 @@ export function renderIssue (issue, context) {
     b.addEventListener(
       'click',
       function (_event) {
-        subIssuePanel.insertBefore(newIssueForm(dom, kb, tracker, issue, listOfSubs.refresh), b.nextSibling) // Pop form just after button
+        subIssuePanel.insertBefore(newIssueForm(dom, store, tracker, issue, listOfSubs.refresh), b.nextSibling) // Pop form just after button
       },
       false
     )
@@ -402,7 +404,7 @@ export function renderIssue (issue, context) {
   issueDiv.appendChild(dom.createElement('br'))
 
   // Extras are stored centrally to the tracker
-  const extrasForm = kb.any(tracker, ns.wf('extrasEntryForm'))
+  const extrasForm = store.any(tracker, ns.wf('extrasEntryForm'))
   if (extrasForm) {
     widgets.appendForm(
       dom,
@@ -420,31 +422,31 @@ export function renderIssue (issue, context) {
 
   const spacer = issueDiv.appendChild(renderSpacer(dom, backgroundColor))
 
-  const template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
+  const template = store.anyValue(tracker, ns.wf('issueURITemplate'))
   /*
-  var chatDocURITemplate = kb.anyValue(tracker, ns.wf('chatDocURITemplate')) // relaive to issue
+  var chatDocURITemplate = store.anyValue(tracker, ns.wf('chatDocURITemplate')) // relaive to issue
   var chat
   if (chatDocURITemplate) {
     let template = $rdf.uri.join(chatDocURITemplate, issue.uri) // Template is relative to issue
-    chat = kb.sym(expandTemplate(template))
+    chat = store.sym(expandTemplate(template))
   } else
   */
   let messageStore
   if (template) {
     messageStore = issue.doc() // for now. Could go deeper
   } else {
-    messageStore = kb.any(tracker, ns.wf('messageStore'))
-    if (!messageStore) messageStore = kb.any(tracker, ns.wf('stateStore'))
-    kb.sym(messageStore.uri + '#' + 'Chat' + timestring()) // var chat =
+    messageStore = store.any(tracker, ns.wf('messageStore'))
+    if (!messageStore) messageStore = store.any(tracker, ns.wf('stateStore'))
+    store.sym(messageStore.uri + '#' + 'Chat' + timestring()) // var chat =
   }
 
-  kb.fetcher.nowOrWhenFetched(messageStore, function (ok, body, _xhr) {
+  store.fetcher.nowOrWhenFetched(messageStore, function (ok, body, _xhr) {
     if (!ok) {
       const er = dom.createElement('p')
       er.textContent = body // @@ use nice error message
       issueDiv.insertBefore(er, spacer)
     } else {
-      const discussion = messageArea(dom, kb, issue, messageStore)
+      const discussion = messageArea(dom, store, issue, messageStore)
       issueDiv.insertBefore(discussion, spacer)
       issueDiv.insertBefore(renderSpacer(dom, backgroundColor), discussion)
     } // Not sure why  e stuck this in upwards rather than downwards
@@ -463,14 +465,14 @@ export function renderIssue (issue, context) {
   widgets.attachmentList(dom, issue, issueDiv, {
     doc: stateStore,
     promptIcon: icons.iconBase + 'noun_25830.svg',
-    uploadFolder: kb.sym(uploadFolderURI), // Allow local files to be uploaded
+    uploadFolder: store.sym(uploadFolderURI), // Allow local files to be uploaded
     predicate: ns.wf('attachment')
   })
 
   // Delete button to delete the issue
   const deleteButton = widgets.deleteButtonWithCheck(dom, issueDiv, 'issue', async function () {
     try {
-      await kb.updater.update(kb.connectedStatements(issue))
+      await store.updater.update(store.connectedStatements(issue))
     } catch (err) {
       complain(`Unable to delete issue: ${err}`, context)
     }
@@ -488,7 +490,7 @@ export function renderIssue (issue, context) {
     'click',
     async function (_event) {
       try {
-        await kb.fetcher.load(messageStore, { force: true, clearPreviousData: true })
+        await store.fetcher.load(messageStore, { force: true, clearPreviousData: true })
       } catch (err) {
         alert(err)
         return

@@ -10,9 +10,10 @@
  * @returns dom:Element
 */
 
-import { ns, rdf, store, utils, widgets } from 'solid-ui'
-const kb = store
-const $rdf = rdf
+import * as UI from 'solid-ui'
+import { store } from 'solid-logic'
+const ns = UI.ns
+const $rdf = UI.rdf
 
 export function board (dom, columnValues, renderItem, options) {
   const board = dom.createElement('div')
@@ -37,7 +38,7 @@ export function board (dom, columnValues, renderItem, options) {
     function droppedURIHandler (uris) {
       uris.forEach(function (u) {
         console.log('Dropped on column: ' + u)
-        const item = kb.sym(u)
+        const item = store.sym(u)
         options.columnDropHandler(item, x)
       })
     }
@@ -53,19 +54,19 @@ export function board (dom, columnValues, renderItem, options) {
   function defaultRenderItem (item, category) {
     const card = dom.createElement('div')
     const table = card.appendChild(dom.createElement('table'))
-    const classes = kb.each(item, ns.rdf('type'))
-    const catColors = classes.map(cat => kb.any(cat, ns.ui('backgroundColor'))).filter(c => c)
+    const classes = store.each(item, ns.rdf('type'))
+    const catColors = classes.map(cat => store.any(cat, ns.ui('backgroundColor'))).filter(c => c)
 
     table.appendChild(widgets.personTR(dom, null, item))
     table.subject = item
     table.style = 'margin: 1em;' // @@ use style.js
-    const backgroundColor = catColors[0] || kb.any(category, ns.ui('backgroundColor'))
+    const backgroundColor = catColors[0] || store.any(category, ns.ui('backgroundColor'))
     card.style.backgroundColor = backgroundColor ? backgroundColor.value : '#fff'
     return card
   }
 
   function sortedBy (values, predicate, defaultSortValue, reverse) {
-    const toBeSorted = values.map(x => [kb.any(x, predicate) || defaultSortValue, x])
+    const toBeSorted = values.map(x => [store.any(x, predicate) || defaultSortValue, x])
     toBeSorted.sort()
     if (reverse) toBeSorted.reverse() // @@ check
     return toBeSorted.map(pair => pair[1])
@@ -81,7 +82,7 @@ export function board (dom, columnValues, renderItem, options) {
     }
     for (let col = mainRow.firstChild; col; col = col.nextSibling) {
       const category = col.subject
-      let items = kb.each(null, ns.rdf('type'), category)
+      let items = store.each(null, ns.rdf('type'), category)
       const sortBy = options.sortBy || ns.dct('created')
       if (options.filter) {
         items = items.filter(options.filter)
