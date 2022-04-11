@@ -566,7 +566,8 @@ export default {
         return
       }
 
-      loginOutButton = authn.loginStatusBox(dom, webIdUri => {
+      loginOutButton = login.loginStatusBox(dom, webIdUri => {
+        authn.log
         if (webIdUri) {
           context.me = kb.sym(webIdUri)
           console.log('Web ID set from login button: ' + webIdUri)
