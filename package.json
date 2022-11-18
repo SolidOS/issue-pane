@@ -34,15 +34,15 @@
   },
   "homepage": "https://github.com/solid/issue-pane",
   "dependencies": {
-    "pane-registry": "2.4.12",
-    "rdflib": "^2.2.20",
-    "solid-logic": "2.0.0",
-    "solid-ui": "2.4.23"
+    "pane-registry": "2.4.13",
+    "rdflib": "^2.2.21",
+    "solid-logic": "2.0.1",
+    "solid-ui": "2.4.24"
   },
   "devDependencies": {
-    "eslint": "^8.23.0",
+    "eslint": "^8.27.0",
     "eslint-plugin-import": "^2.26.0",
-    "husky": "^8.0.1",
+    "husky": "^8.0.2",
     "lint-staged": "^13.0.3"
   },
   "husky": {
