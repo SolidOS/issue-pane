@@ -1,6 +1,6 @@
 {
   "name": "issue-pane",
-  "version": "2.4.14",
+  "version": "2.4.15",
   "description": "Solid-compatible Panes: issue editor",
   "main": "./issuePane.js",
   "scripts": {
