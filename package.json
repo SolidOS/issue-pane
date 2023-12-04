@@ -34,13 +34,13 @@
   },
   "homepage": "https://github.com/solid/issue-pane",
   "dependencies": {
-    "solid-ui": "2.4.27"
+    "solid-ui": "2.4.32"
   },
   "devDependencies": {
-    "eslint": "^8.36.0",
-    "eslint-plugin-import": "^2.27.5",
+    "eslint": "^8.55.0",
+    "eslint-plugin-import": "^2.29.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.0"
+    "lint-staged": "^15.2.0"
   },
   "husky": {
     "hooks": {
