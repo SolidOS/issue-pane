@@ -37,10 +37,10 @@
     "solid-ui": "2.4.32"
   },
   "devDependencies": {
-    "eslint": "^8.55.0",
-    "eslint-plugin-import": "^2.29.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.29.1",
     "husky": "^8.0.3",
-    "lint-staged": "^15.2.0"
+    "lint-staged": "^15.2.2"
   },
   "husky": {
     "hooks": {
