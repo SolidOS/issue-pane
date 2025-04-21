@@ -1,26 +1,31 @@
 // A Button to copy the state of the tracker in CSV format
 // Comma-separated Values
 //
-import { icons, messageArea, ns, rdf, style, utils, widgets } from 'solid-ui'
-import { authn, store } from 'solid-logic'
-import { newIssueForm } from './newIssue'
+// Yes this mixes the layers but that is not all bad if it gets it in one file
+// one can look at 
 
-const $rdf = rdf
-const kb = store
+import { icons, ns, utils, widgets } from 'solid-ui'
+import { store } from 'solid-logic'
 
 export function csvText(store, tracker)  {
   function encode(value) {
-    return value.replace('\n', ' ').replace(',', '\\,') // @@ check
+    // https://www.rfc-editor.org/rfc/rfc4180
+    const stripped = value.replace('\n', ' ')
+    if (!stripped.contains(',')) {
+      return stripped
+    }  // If contains comma then put in quotes and double up internal quotes
+    return '"' + stripped.replace('"', '""') + '"'
   }
+
   function columnText(task, column) {
     let thing
     if (column.predicate)  {
-      thing = store.any(task, predicate)
+      thing = store.any(task, column.predicate)
     }
     else if (column.category)  {
-      types = store.each(task, ns.rdf('type'))
-      for (t of types) {
-        if (store.holds(t, ns.rdfs('subClassOf'), column.category){
+      const types = store.each(task, ns.rdf('type'))
+      for (const t of types) {
+        if (store.holds(t, ns.rdfs('subClassOf'), column.category)){
           thing = t
         }
       }
@@ -28,48 +33,41 @@ export function csvText(store, tracker)  {
     } else {
       throw new Error('wot no pred or cat', column)
     }
-    return label(thing)
+    return utils.label(thing)
   }
 
   function taskLine(task) {
-    return columns.map(columnText)
+    return columns.map(column => columnText(task, column))
         .map(encode)
         .join(',')
             + '/n'
   }
-  const stateStore = kb.any(subject, ns.wf('stateStore'))
+  const stateStore = store.any(tracker, ns.wf('stateStore'))
   const tasks = store.any(null, ns.wf('tracker'), tracker, stateStore)
 
   let columns = [
-    /*
-    {
-      label: 'Name',    predicate: ns.dct('title')
-    },
-    {
-      label: 'Created', predicate: ns.dct('created')
-    },
-    {
-      label: 'Location', predicate: store.sym('http://www.w3.org/2002/12/cal/ical#location')
-    }
+    /*  like:
+    { label: 'Name',    predicate: ns.dct('title')  },
+    { label: 'State', category: ns.wf('Task') }
       */
 ] 
-  const states = kb.any(tracker, ns.wf('issueClass')) // Main states are subclasses of this class
-  const categories = kb.each(tracker, ns.wf('issueCategory')) | []
+  const states = store.any(tracker, ns.wf('issueClass')) // Main states are subclasses of this class
+  const categories = store.each(tracker, ns.wf('issueCategory')) | []
   const classifications = [states ] + categories
   for (const c in classifications){
-    const column = { label: label(c), category: c}
+    const column = { label: utils.label(c), category: c}
     console.log('  CSV: found column from classifications', column)
     columns.append(column) // Classes are different
   }
 
-  const propertyList = ns.wf('propertyList')
+  // const propertyList = ns.wf('propertyList')
   const form = store.any(tracker, ns.wf('extrasEntryForm'), null, tracker.doc())
   if (form) {
     const parts = store.any(form, ns.ui('parts'), null, form.doc())
     const fields = parts.elements
-    for (field of fields) {
+    for (const field of fields) {
       const prop = store.any(field,ns.ui('property'))
-      const lab = label(prop)
+      const lab = utils.label(prop)
       const column = {label: lab, predicate: prop}
       console.log('  CSV: found column from form', column)
       columns.append(column)
@@ -82,13 +80,11 @@ export function csvText(store, tracker)  {
 }
 
 export function csvButton (dom, tracker) {
-
   const wrapper = dom.createElement('div')
   // Add a button
   const button = widgets.button(dom, icons.iconBase + 'noun_479395.svg',
     'Copy as CSV', async _event => {
-      const csv = '' // @@ fill in with data
-    
+      const csv = csvText(store, tracker)
       var copyEvent = new ClipboardEvent('copy');
       copyEvent.clipboardData.items.add(csv, 'text/csv');
       copyEvent.clipboardData.items.add(csv, 'text/plain');
@@ -97,9 +93,6 @@ export function csvButton (dom, tracker) {
     })
 
   wrapper.appendChild(button)
-
-  // Make a button function to dump to clipboard
-
   return wrapper
 }
 

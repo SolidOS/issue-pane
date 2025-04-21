@@ -356,7 +356,7 @@ export default {
     }
     function renderSettings (tracker) {
       const settingsDiv = dom.createElement('div')
-      div.appendChild(csvButton(dom, tracker)) // Button to copy the tracker as a CSV file
+      settingsDiv.appendChild(csvButton(dom, tracker)) // Button to copy the tracker as a CSV file
       const states = kb.any(tracker, ns.wf('issueClass'))
       const views = [tableView, states] // Possible default views
         .concat(kb.each(tracker, ns.wf('issueCategory')))
