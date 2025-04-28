@@ -7,15 +7,16 @@
 import { icons, ns, utils, widgets } from 'solid-ui'
 import { store } from 'solid-logic'
 
+export function quoteString(value) {
+  // https://www.rfc-editor.org/rfc/rfc4180
+  const stripped = value.replace('\n', ' ')
+  if (!stripped.includes(',')) {
+    return stripped
+  }  // If contains comma then put in quotes and double up internal quotes
+  return '"' + stripped.replace('"', '""') + '"'
+}
+
 export function csvText(store, tracker)  {
-  function encode(value) {
-    // https://www.rfc-editor.org/rfc/rfc4180
-    const stripped = value.replace('\n', ' ')
-    if (!stripped.contains(',')) {
-      return stripped
-    }  // If contains comma then put in quotes and double up internal quotes
-    return '"' + stripped.replace('"', '""') + '"'
-  }
 
   function columnText(task, column) {
     let thing
@@ -25,11 +26,13 @@ export function csvText(store, tracker)  {
     else if (column.category)  {
       const types = store.each(task, ns.rdf('type'))
       for (const t of types) {
+        console.log('@@ checking subclass type: ', t, ' category: ', column.category )
         if (store.holds(t, ns.rdfs('subClassOf'), column.category)){
           thing = t
         }
       }
-      if (!thing) throw new Error('wot no category', column.category)
+      if (!thing) return '?' + utils.label(column.category) // @@
+      if (!thing) throw new Error('wot no class of category ', column.category)
     } else {
       throw new Error('wot no pred or cat', column)
     }
@@ -38,12 +41,12 @@ export function csvText(store, tracker)  {
 
   function taskLine(task) {
     return columns.map(column => columnText(task, column))
-        .map(encode)
+        .map(quoteString)
         .join(',')
             + '/n'
   }
   const stateStore = store.any(tracker, ns.wf('stateStore'))
-  const tasks = store.any(null, ns.wf('tracker'), tracker, stateStore)
+  const tasks = store.each(null, ns.wf('tracker'), tracker, stateStore)
 
   let columns = [
     /*  like:
@@ -52,12 +55,18 @@ export function csvText(store, tracker)  {
       */
 ] 
   const states = store.any(tracker, ns.wf('issueClass')) // Main states are subclasses of this class
-  const categories = store.each(tracker, ns.wf('issueCategory')) | []
-  const classifications = [states ] + categories
-  for (const c in classifications){
+  console.log('  CSV: States - main superclass:', states)
+
+  const categories = store.each(tracker, ns.wf('issueCategory'))
+  console.log('  CSV: Categories : ', categories )
+  console.log('  CSV: Categories : length: ', categories.length)
+  console.log('  CSV: Categories : first: ', categories[0])
+
+  const classifications = [states].concat(categories)
+  for (const c of classifications){
     const column = { label: utils.label(c), category: c}
     console.log('  CSV: found column from classifications', column)
-    columns.append(column) // Classes are different
+    columns.push(column) // Classes are different
   }
 
   // const propertyList = ns.wf('propertyList')
@@ -70,7 +79,7 @@ export function csvText(store, tracker)  {
       const lab = utils.label(prop)
       const column = {label: lab, predicate: prop}
       console.log('  CSV: found column from form', column)
-      columns.append(column)
+      columns.push(column)
     }
   }
   const header = columns.map(col => col.label).join(',') + '\n'
