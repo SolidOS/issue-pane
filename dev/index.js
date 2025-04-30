@@ -29,7 +29,12 @@ finishLogin();
 // const targetURIToShow = "https://angelo.veltens.org/profile/card#me";
 // const targetURIToShow = "https://testingsolidos.solidcommunity.net/profile/card#me";
 // const targetURIToShow = "https://timbl.solidcommunity.net/profile/card#me";
-const targetURIToShow = "https://solidproject.solidcommunity.net/Roadmap/index.ttl#this";
+
+// const targetURIToShow = "https://solidproject.solidcommunity.net/Roadmap/index.ttl#this";
+
+// const targetURIToShow = "https://timbl.com/timbl/Automation/mother/tracker.n3#mother"
+
+const targetURIToShow = "http://localhost:8080/big-tracker.ttl#this"
 
 fetcher.load(targetURIToShow).then(() => {
   const app = pane.render(sym(targetURIToShow), context);

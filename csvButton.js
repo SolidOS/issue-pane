@@ -38,8 +38,8 @@ export function csvText(store, tracker)  {
           thing = t
         }
       }
-      if (!thing) return '?' + utils.label(column.category) // @@
-      if (!thing) throw new Error('wot no class of category ', column.category)
+      if (!thing) return '?' + utils.label(column.category) // Missing cat OK
+      // if (!thing) throw new Error('wot no class of category ', column.category)
     } else {
       throw new Error('wot no pred or cat', column)
     }
@@ -95,10 +95,12 @@ export function csvText(store, tracker)  {
 
     for (const field of fields) {
       const prop = store.any(field,ns.ui('property'))
-      const lab = utils.label(prop)
-      const column = {label: lab, predicate: prop}
-      console.log('  CSV: found column from form', column)
-      columns.push(column)
+      if (prop) {
+        const lab = utils.label(prop)
+        const column = {label: lab, predicate: prop}
+        console.log('  CSV: found column from form', column)
+        columns.push(column)  
+      }
     }
   }
   // Put description  on the end as it can be long
@@ -120,7 +122,7 @@ export function csvButton (dom, tracker) {
       const div = button.parentNode.parentNode
       console.log('button gparent div', div)
       div.addEventListener('copy', event => {
-          alert ('Copy caught');
+          // alert ('Copy caught');
           const csv = csvText(store, tracker);
           const csv1 = TestCSVstring
           event.clipboardData.setData("text/plain", csv);
@@ -133,7 +135,7 @@ export function csvButton (dom, tracker) {
       if (!copyEvent) {
         alert('CSV: Copy event failed.')
       } else if (!copyEvent.clipboardData){
-        alert('CSV: Copy event no clipboardData')
+        alert('CSV: Now do a copy operation to copy as CSV data')
       } else {
         copyEvent.clipboardData.items.add(csv, 'text/csv');
         copyEvent.clipboardData.items.add(csv, 'text/plain');
