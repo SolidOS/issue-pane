@@ -124,28 +124,11 @@ export function csvButton (dom, tracker) {
       div.addEventListener('copy', event => {
           // alert ('Copy caught');
           const csv = csvText(store, tracker);
-          const csv1 = TestCSVstring
           event.clipboardData.setData("text/plain", csv);
           event.clipboardData.setData("text/csv", csv);
           alert ('Copy data: ' + csv)
           event.preventDefault();
       })
-
-      var copyEvent = new ClipboardEvent('copy');
-      if (!copyEvent) {
-        alert('CSV: Copy event failed.')
-      } else if (!copyEvent.clipboardData){
-        alert('CSV: Now do a copy operation to copy as CSV data')
-      } else {
-        copyEvent.clipboardData.items.add(csv, 'text/csv');
-        copyEvent.clipboardData.items.add(csv, 'text/plain');
-        dom.dispatchEvent(copyEvent);
-        alert('Copy dispatched.')
-        // https://developer.mozilla.org/en-US/docs/Web/API/Element/copy_event
-        // t's possible to construct and dispatch a synthetic copy event,
-        // but this will not affect the system clipboard.
-      }
-      event.preventDefault()
     })
 
   wrapper.appendChild(button)
