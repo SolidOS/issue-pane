@@ -1,0 +1,238 @@
+
+  # This is the master file for a big issue tracker
+
+    @prefix : <#> .
+    @prefix con: <http://www.w3.org/2000/10/swap/pim/contact#> .
+    @prefix doap: <http://usefulinc.com/ns/doap#> .
+    @prefix flow: <http://www.w3.org/2005/01/wf/flow#> .
+    @prefix ical: <http://www.w3.org/2002/12/cal/ical#> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    @prefix ui: <http://www.w3.org/ns/ui#> .
+    
+    :Accepted     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Will go ahead. We are working on this";
+         <http://www.w3.org/2000/01/rdf-schema#label> "Accepted, in progress";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 50 .
+    
+    :Action     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "action";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#eeeeff";
+         ui:sortOrder 80 .
+    
+    :AttendConference     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "attend conference";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#fcfce8";
+         ui:sortOrder 50 .
+        
+    :Book     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "book";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#eeffee";
+         ui:sortOrder 70 .
+    
+    :CommercialSpeaking     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "commercial speaking";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#ffcbad";
+         ui:sortOrder 30 .
+    
+    :Declined     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Declined";
+         <http://www.w3.org/2000/01/rdf-schema#label> "declined";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Closed,
+                :MotherIssue;
+         ui:sortOrder 30 .
+    
+    :Discussing     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Being discussed";
+         <http://www.w3.org/2000/01/rdf-schema#label> "in discussion";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 80 .
+    
+    :Done     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Completed.";
+         <http://www.w3.org/2000/01/rdf-schema#label> "done";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Closed,
+                :MotherIssue;
+         ui:sortOrder 20 .
+    
+    :Film     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "film";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#eeffff";
+         ui:sortOrder 80 .
+    
+    :HonoraryDegree     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "honorary degree";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#ffa8ab";
+         ui:sortOrder 40 .
+        
+    :Meeting     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "meeting request";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#e8e8ff";
+         ui:sortOrder 60 .
+    
+    :MotherIssue     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "Request";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Task;
+         owl:disjointUnionOf  (
+        :New
+        :Discussing
+        :Pending
+        :Negotiating
+        :Accepted
+        :Urgent
+        :ToBeDeclined
+        :Watchlist
+        :Declined
+        :Obsolete
+        :Done ) .
+    
+    :Negotiating     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Being negotiated";
+         <http://www.w3.org/2000/01/rdf-schema#label> "negotiating";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 60 .
+    
+    :New     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> """Has not been looked at.
+    This is the initial state normally when an issue is created.""";
+         <http://www.w3.org/2000/01/rdf-schema#label> "new";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 90 .
+    
+    :NonProfitSpeaking     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "non-profit speaking";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#fffed0";
+         ui:sortOrder 20 .
+        
+    :Obsolete     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Overtaken by time or events.";
+         <http://www.w3.org/2000/01/rdf-schema#label> "obsolete/missed";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Closed,
+                :MotherIssue;
+         ui:sortOrder 10 .
+
+
+    :OtherRequest     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "other";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#eeeeee";
+         ui:sortOrder 90 .
+    
+    :Pending     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Waiting for someone else's input.";
+         <http://www.w3.org/2000/01/rdf-schema#label> "pending others";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 75 .
+    
+    :PressRequest     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#label> "press";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> :RequestCategory;
+         ui:backgroundColor "#dccdfc";
+         ui:sortOrder 10 .
+        
+    :RequestCategory     <http://www.w3.org/2000/01/rdf-schema#label> "category";
+         owl:disjointUnionOf  (
+        :PressRequest
+        :NonProfitSpeaking
+        :CommercialSpeaking
+        :HonoraryDegree
+        :AttendConference
+        :Meeting
+        :Book
+        :Film
+        :Action
+        :OtherRequest ) .
+    
+    :RequestExtrasForm     a ui:Form,
+                ui:Group;
+         <http://purl.org/dc/elements/1.1/title> "Extra  details of a request";
+         ui:parts  (
+         [
+                 a ui:Heading;
+                 ui:contents "Details:"@en;
+                 ui:sequence 10 ]
+         [
+                 a ui:DateField;
+                 ui:property flow:earliestDate;
+                 ui:sequence 20 ]
+         [
+                 a ui:DateField;
+                 ui:property flow:latestDate;
+                 ui:sequence 40 ]
+         [
+                 a ui:Comment;
+                 ui:contents "The earliest and latest dates are the window for the event, or both the same if fixed."@en;
+                 ui:sequence 60;
+                 ui:style "background-color: #ffe;" ]
+         [
+                 a ui:SingleLineTextField;
+                 ui:property ical:location;
+                 ui:seuqence 70;
+                 ui:size 30 ]
+         [
+                 a ui:DateField;
+                 ui:property flow:dateReceived;
+                 ui:sequence 80 ]
+         [
+                 a ui:MultiLineTextField;
+                 ui:property <http://www.w3.org/2000/01/rdf-schema#comment>;
+                 ui:sequence 90 ] ) .
+    
+        
+    :ToBeDeclined     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "To be declined";
+         <http://www.w3.org/2000/01/rdf-schema#label> "to be declined";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 40 .
+    
+    :Urgent     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "Needs urgent attention";
+         <http://www.w3.org/2000/01/rdf-schema#label> "URGENT";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 55 .
+        
+    :Watchlist     a <http://www.w3.org/2000/01/rdf-schema#Class>;
+         <http://www.w3.org/2000/01/rdf-schema#comment> "We will keep this in mind.";
+         <http://www.w3.org/2000/01/rdf-schema#label> "watch list";
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf> flow:Open,
+                :MotherIssue;
+         ui:sortOrder 35 .
+    
+    :this     a flow:Tracker;
+         <http://purl.org/dc/terms/title> "The Big Request Tracker";
+         <http://www.w3.org/2000/01/rdf-schema#label> "Request Tracker";
+         flow:allowSubIssues :false;
+         flow:assigneeClass <http://xmlns.com/foaf/0.1/Person>;
+         flow:defaultView flow:TableView;
+         flow:description "Requests";
+         flow:extrasEntryForm :RequestExtrasForm;
+         flow:initialState :New;
+         flow:issueCategory :RequestCategory;
+         flow:issueClass :MotherIssue;
+         flow:propertyList  (
+        flow:earliestDate
+        flow:latestDate
+        ical:location
+        <http://www.w3.org/2000/01/rdf-schema#comment>
+        flow:assignee );
+         flow:stateStore <state-big-tracker.ttl> .
+    
+    <tracker.n3>     <http://www.w3.org/2000/01/rdf-schema#comment> """This file defines a tracker for requests.
+    """;
+         <http://www.w3.org/2000/01/rdf-schema#label> "A tracker definition file for requests" .
+    

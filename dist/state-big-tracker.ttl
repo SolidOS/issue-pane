@@ -1,0 +1,64 @@
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix con: <http://www.w3.org/2000/10/swap/pim/contact#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/>.
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix wf: <http://www.w3.org/2005/01/wf/flow#> .
+@prefix ical: <http://www.w3.org/2002/12/cal/ical#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ui: <http://www.w3.org/ns/ui#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix : <big-tracker.ttl#> . # the config file
+
+    <#Task1> wf:tracker :this ;
+        dc:title "Test task 1";
+        a :New , :Action;
+        dct:created 2004-08-21;
+        ical:location "London";
+        wf:dateReceived 2000-01-12;
+        wf:earliestDate 1999-12-12;
+        wf:latestDate 2001-12-12;
+
+        wf:description "Yadda Tadda yadda ";
+        rdfs:comment "This is a comment".
+
+    <#Task2> wf:tracker :this ;
+        dc:title "Test task 2";
+        a :Accepted , :Action;
+        dct:created 2004-06-21;
+        ical:location "London";
+        wf:dateReceived 2000-01-12;
+        wf:earliestDate 1999-12-12;
+        wf:latestDate 2001-12-12;
+
+        wf:description "Yadda Tadda yadda ";
+        rdfs:comment "This is a comment".
+
+    <#Task3> wf:tracker :this ;
+        dc:title "Test task 3";
+        a :New , :Book;
+        dct:created 2004-04-21;
+        ical:location "London";
+        wf:dateReceived 2000-01-12;
+        wf:earliestDate 1999-12-12;
+        wf:latestDate 2001-12-12;
+
+        wf:description "Yadda Tadda yadda ";
+        rdfs:comment "This is a comment".
+
+    <#Task4> wf:tracker :this ;
+        dc:title "Test task 4";
+        a :Accepted , :Book;
+        dct:created 2004-09-21;
+        ical:location "London";
+        wf:dateReceived 2000-01-12;
+        wf:earliestDate 1999-12-12;
+        wf:latestDate 2001-12-12;
+
+        wf:description "Yadda Tadda yadda ";
+        rdfs:comment "This is a comment".
+
+
+
+# ENDS
+

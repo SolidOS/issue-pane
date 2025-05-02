@@ -1,4 +1,4 @@
-/*   Issue Tracker Pane
+  /*   Issue Tracker Pane
  **
  **  This solid view allows a user to interact with an issue tracker, or individual issue,
  ** to change its state according to an ontology, comment on it, etc.
@@ -11,6 +11,7 @@ import { board } from './board' // @@ will later be in solid-UI
 import { renderIssue, renderIssueCard, getState, exposeOverlay } from './issue'
 import { newTrackerButton } from './newTracker'
 import { newIssueForm } from './newIssue'
+import { csvButton } from './csvButton'
 import { trackerSettingsFormText } from './trackerSettingsForm.js'
 // import { trackerInstancesFormText } from './trackerInstancesForm.js'
 
@@ -355,6 +356,7 @@ export default {
     }
     function renderSettings (tracker) {
       const settingsDiv = dom.createElement('div')
+      settingsDiv.appendChild(csvButton(dom, tracker)) // Button to copy the tracker as a CSV file
       const states = kb.any(tracker, ns.wf('issueClass'))
       const views = [tableView, states] // Possible default views
         .concat(kb.each(tracker, ns.wf('issueCategory')))
