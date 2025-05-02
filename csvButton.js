@@ -7,8 +7,6 @@
 import { icons, ns, utils, widgets } from 'solid-ui'
 import { store } from 'solid-logic'
 
-const TestCSVstring = 'A,B,C\n1,2,3\n4,5,6\nfoo,bar,baz\n'
-
 export function quoteString(value) {
   // https://www.rfc-editor.org/rfc/rfc4180
   const stripped = value.replaceAll('\n', ' ')
@@ -117,7 +115,7 @@ export function csvButton (dom, tracker) {
   const wrapper = dom.createElement('div')
   // Add a button
   const button = widgets.button(dom, icons.iconBase + 'noun_Document_998605.svg',
-    'Copy as CSV', async event => {
+    'Copy as CSV', async _event => {
 
       const div = button.parentNode.parentNode
       console.log('button gparent div', div)
