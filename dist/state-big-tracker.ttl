@@ -1,16 +1,13 @@
-
-
 @prefix dc: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-    @prefix con: <http://www.w3.org/2000/10/swap/pim/contact#> .
-    @prefix dc: <http://purl.org/dc/elements/1.1/>.
-    @prefix doap: <http://usefulinc.com/ns/doap#> .
-    @prefix wf: <http://www.w3.org/2005/01/wf/flow#> .
-    @prefix ical: <http://www.w3.org/2002/12/cal/ical#> .
-    @prefix owl: <http://www.w3.org/2002/07/owl#> .
-    @prefix ui: <http://www.w3.org/ns/ui#> .
-    @prefix dct: <http://purl.org/dc/terms/> .
-
+@prefix con: <http://www.w3.org/2000/10/swap/pim/contact#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/>.
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix wf: <http://www.w3.org/2005/01/wf/flow#> .
+@prefix ical: <http://www.w3.org/2002/12/cal/ical#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ui: <http://www.w3.org/ns/ui#> .
+@prefix dct: <http://purl.org/dc/terms/> .
 @prefix : <big-tracker.ttl#> . # the config file
 
     <#Task1> wf:tracker :this ;

@@ -1,7 +1,6 @@
 #Processed by Id
         #    using base file:///Users/timbl_1/src/github.com/solidos/solidos/workspaces/issue-pane/test/big-tracker-config.ttl
              @prefix : <tracker.n3#> .
-    @prefix ca: <https://olarkin.inrupt.net/profile/card#> .
     @prefix con: <http://www.w3.org/2000/10/swap/pim/contact#> .
     @prefix doap: <http://usefulinc.com/ns/doap#> .
     @prefix flow: <http://www.w3.org/2005/01/wf/flow#> .
