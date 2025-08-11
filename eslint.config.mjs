@@ -1,3 +1,4 @@
+import { defineConfig } from "eslint/config";
 import { fixupConfigRules } from "@eslint/compat";
 import globals from "globals";
 import path from "node:path";
@@ -13,23 +14,22 @@ const compat = new FlatCompat({
     allConfig: js.configs.all
 });
 
-export default [
-    ...fixupConfigRules(compat.extends("eslint:recommended", "plugin:import/recommended")),
-    {
-        languageOptions: {
-            globals: {
-                ...globals.browser,
-                ...globals.node,
-                Atomics: "readonly",
-                SharedArrayBuffer: "readonly",
-            },
-        },
+export default defineConfig([{
+    extends: fixupConfigRules(compat.extends("eslint:recommended", "plugin:import/recommended")),
 
-        rules: {
-            "no-unused-vars": ["warn", {
-                argsIgnorePattern: "^_",
-                varsIgnorePattern: "^_",
-            }],
+    languageOptions: {
+        globals: {
+            ...globals.browser,
+            ...globals.node,
+            Atomics: "readonly",
+            SharedArrayBuffer: "readonly",
         },
     },
-];
+
+    rules: {
+        "no-unused-vars": ["warn", {
+            argsIgnorePattern: "^_",
+            varsIgnorePattern: "^_",
+        }],
+    },
+}]);
