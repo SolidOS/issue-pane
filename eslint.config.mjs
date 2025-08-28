@@ -1,9 +1,8 @@
-import { defineConfig } from "eslint/config";
 import globals from "globals";
 import js from "@eslint/js";
 import importPlugin from "eslint-plugin-import";
 
-export default defineConfig([
+export default [
   {
     languageOptions: {
       globals: {
@@ -30,4 +29,4 @@ export default defineConfig([
       ],
     },
   },
-]);
+];
