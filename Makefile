@@ -1,6 +1,6 @@
 # Wrap TTL files into JS files for bundling with library
 
-,all : dist/wf.js dist/trackerSettingsForm.js  dist/ui.js
+all : dist/wf.js dist/trackerSettingsForm.js  dist/ui.js
 
 src/wf.ttl:
 				curl  http://www.w3.org/2005/01/wf/flow.n3 > wf0.ttl
