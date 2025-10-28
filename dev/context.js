@@ -6,7 +6,7 @@ export const context = {
     paneRegistry: {
       byName: (name) => {
         // longChatPane
-        return null;
+        return null
       }
     },
     logic: solidLogicSingleton
