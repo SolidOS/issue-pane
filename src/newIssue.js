@@ -76,7 +76,7 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
 
     const sendComplete = function (uri, success, body) {
       if (!success) {
-        console.log("Error: can't save new issue:" + body)
+        console.log('Error: can\'t save new issue:' + body)
       } else {
         form.parentNode.removeChild(form)
         showNewIssue(issue)

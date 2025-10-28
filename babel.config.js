@@ -1,5 +1,12 @@
-module.exports = {
-  plugins: [
-    ["@babel/plugin-transform-runtime"]
-  ]
-};
+export default {
+  presets: [
+    [
+      '@babel/preset-env',
+      {
+        targets: {
+          node: 'current',
+        },
+      },
+    ],
+  ],
+}
