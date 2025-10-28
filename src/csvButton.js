@@ -45,8 +45,7 @@ export function csvText (store, tracker) {
   function taskLine (task) {
     return columns.map(column => columnText(task, column))
       .map(quoteString)
-      .join(',') +
-            '\n'
+      .join(',') + '\n'
   }
   const stateStore = store.any(tracker, ns.wf('stateStore'))
   const tasks = store.each(null, ns.wf('tracker'), tracker, stateStore)
