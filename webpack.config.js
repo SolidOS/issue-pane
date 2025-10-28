@@ -1,12 +1,28 @@
-import HtmlWebpackPlugin from 'html-webpack-plugin'
 import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
+import path from 'path'
 
 export default [
   {
-    mode: 'development',
-    entry: ['./dev/index.js'],
+    mode: 'production',
+    entry: {
+      board: "./src/board.js",
+      csvButton: "./src/csvButton.js",
+      issue: "./src/issue.js",
+      issuePane: "./src/issuePane.js",
+      newIssue: "./src/newIssue.js",
+      newTracker: "./src/newTracker.js",
+    },
+    output: {
+      path: path.resolve(process.cwd(), 'dist'),
+      filename: '[name].js',
+      library: {
+        name: '[name]',
+        type: 'umd'
+      },
+      globalObject: 'this',
+      clean: false
+    },
     plugins: [
-      new HtmlWebpackPlugin({ template: './dev/index.html' }),
       new NodePolyfillPlugin()
     ],
     module: {
@@ -29,7 +45,7 @@ export default [
     },
 
     devServer: {
-      static: ['./dist', './test']
+      static: './dist'
     },
     devtool: 'source-map',
   },

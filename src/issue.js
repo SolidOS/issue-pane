@@ -179,10 +179,10 @@ export function renderIssue (issue, context) {
   /// ////////////// Body of renderIssue
 
   const dom = context.dom
-  // eslint-disable-next-line no-use-before-define
+
   const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
   if (!tracker) throw new Error('No tracker')
-  // eslint-disable-next-line no-use-before-define
+
   const stateStore = kb.any(tracker, ns.wf('stateStore'))
   const store = issue.doc()
 
