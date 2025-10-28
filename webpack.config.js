@@ -5,12 +5,12 @@ export default [
   {
     mode: 'production',
     entry: {
-      board: "./src/board.js",
-      csvButton: "./src/csvButton.js",
-      issue: "./src/issue.js",
-      issuePane: "./src/issuePane.js",
-      newIssue: "./src/newIssue.js",
-      newTracker: "./src/newTracker.js",
+      board: './src/board.js',
+      csvButton: './src/csvButton.js',
+      issue: './src/issue.js',
+      issuePane: './src/issuePane.js',
+      newIssue: './src/newIssue.js',
+      newTracker: './src/newTracker.js',
     },
     output: {
       path: path.resolve(process.cwd(), 'dist'),
