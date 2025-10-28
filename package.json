@@ -2,15 +2,23 @@
   "name": "issue-pane",
   "version": "2.6.1",
   "description": "Solid-compatible Panes: issue editor",
-  "main": "./issuePane.js",
+  "main": "dist/issuePane.js",
+   "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "echo nothing to build",
-    "lint": "eslint '*.js'",
-    "lint-fix": "eslint '*.js' --fix",
-    "start": "webpack serve --config webpack.dev.config.js --open",
-    "test": "npm run lint",
-    "prepublishOnly": "npm test",
-    "postpublish": "git push origin main --follow-tags"
+    "clean": "rm -rf dist",
+    "build": "npm run clean && mkdir dist && make && npm run build-dist",
+    "build-dist": "webpack --progress",
+    "lint": "eslint",
+    "lint-fix": "eslint --fix",
+    "test": "echo \"No tests specified\" && exit 0",
+    "prepublishOnly": "npm run build && npm run lint",
+    "preversion": "npm run lint",
+    "postpublish": "git push origin main --follow-tags",
+    "start": "webpack serve --config webpack.dev.config.js --open"
   },
   "repository": {
     "type": "git",
