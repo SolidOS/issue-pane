@@ -44,7 +44,7 @@
   "homepage": "https://github.com/solid/issue-pane",
   "dependencies": {
     "@babel/runtime": "^7.28.3",
-    "solid-ui": "^2.6.1"
+    "solid-ui": "^2.6.1-45faa7b"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",
