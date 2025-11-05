@@ -9,4 +9,13 @@ export default {
       },
     ],
   ],
+  plugins: [
+    [
+      'babel-plugin-inline-import', {
+        extensions: [
+          '.ttl'
+        ]
+      }
+    ]
+  ]
 }

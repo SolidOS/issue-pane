@@ -12,7 +12,7 @@ import { renderIssue, renderIssueCard, getState, exposeOverlay } from './issue'
 import { newTrackerButton } from './newTracker'
 import { newIssueForm } from './newIssue'
 import { csvButton } from './csvButton'
-import { trackerSettingsFormText } from '../dist/trackerSettingsForm'
+import { trackerSettingsFormText } from './ontology/trackerSettingsForm.ttl'
 
 const $rdf = rdf
 const kb = store
@@ -529,12 +529,12 @@ export default {
     const flowOntology = ns.wf('').doc()
     if (!kb.holds(undefined, undefined, undefined, flowOntology)) {
       // If not loaded already
-      $rdf.parse(require('../dist/wf.js'), kb, flowOntology.uri, 'text/turtle') // Load ontology directly
+      $rdf.parse(require('./ontology/wf.ttl'), kb, flowOntology.uri, 'text/turtle') // Load ontology directly
     }
     const userInterfaceOntology = ns.ui('').doc()
     if (!kb.holds(undefined, undefined, undefined, userInterfaceOntology)) {
       // If not loaded already
-      $rdf.parse(require('../dist/ui.js'), kb, userInterfaceOntology.uri, 'text/turtle') // Load ontology directly
+      $rdf.parse(require('./ontology/ui.ttl'), kb, userInterfaceOntology.uri, 'text/turtle') // Load ontology directly
     }
 
     // Render a single issue
