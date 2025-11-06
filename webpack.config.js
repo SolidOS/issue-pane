@@ -45,7 +45,7 @@ export default [
     externals: {
       'solid-ui': 'SolidUI',
       'solid-logic': 'SolidLogic',
-      'rdflib': 'rdflib',
+      rdflib: 'rdflib',
     },
     resolve: {
       extensions: ['*', '.js', '.ts']
