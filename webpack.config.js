@@ -23,7 +23,9 @@ export default [
       clean: false
     },
     plugins: [
-      new NodePolyfillPlugin()
+      new NodePolyfillPlugin({
+        excludeAliases: ['console', 'process']
+      })
     ],
     module: {
       rules: [
@@ -40,6 +42,11 @@ export default [
 
       ],
     },
+    externals: {
+      'solid-ui': 'SolidUI',
+      'solid-logic': 'SolidLogic',
+      'rdflib': 'rdflib',
+    },
     resolve: {
       extensions: ['*', '.js', '.ts']
     },
@@ -47,6 +54,6 @@ export default [
     devServer: {
       static: './dist'
     },
-    devtool: 'source-map',
+    devtool: false,
   },
 ]
