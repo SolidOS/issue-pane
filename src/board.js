@@ -10,9 +10,9 @@
  * @returns dom:Element
 */
 
-import { ns, rdf, utils, widgets } from 'solid-ui'
+import { ns, utils, widgets } from 'solid-ui'
 import { store } from 'solid-logic'
-const $rdf = rdf
+import * as $rdf from 'rdflib'
 
 export function board (dom, columnValues, renderItem, options) {
   const board = dom.createElement('div')
