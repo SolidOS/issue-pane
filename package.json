@@ -48,8 +48,8 @@
   },
   "peerDependencies": {
     "rdflib": "^2.2.37",
-    "solid-logic": "^3.1.1",
-    "solid-ui": "^2.6.1-45faa7b"
+    "solid-logic": "^3.1.1-d167ace",
+    "solid-ui": "^2.6.1-6458d4e"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",
@@ -62,8 +62,8 @@
     "neostandard": "^0.12.2",
     "node-polyfill-webpack-plugin": "^4.1.0",
     "rdflib": "^2.3.0",
-    "solid-logic": "^3.1.1",
-    "solid-ui": "^2.6.1",
+    "solid-logic": "^3.1.1-d167ace",
+    "solid-ui": "^2.6.1-6458d4e",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
   }

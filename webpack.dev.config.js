@@ -25,11 +25,19 @@ export default [
       ],
     },
     resolve: {
-      extensions: ['*', '.js', '.ts']
+      extensions: ['*', '.js', '.ts'],
+      alias: {
+        '$rdf': 'rdflib',
+        'rdflib': 'rdflib',
+        'SolidLogic': 'solid-logic',
+        'solid-logic': 'solid-logic',
+        'SolidUI': 'solid-ui',
+        'solid-ui': 'solid-ui'
+      }
     },
 
     devServer: {
-      static: ['./dist', './test']
+      static: ['./dev', './test']
     },
     devtool: 'source-map',
   },

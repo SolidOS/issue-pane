@@ -51,9 +51,6 @@ export default [
       extensions: ['*', '.js', '.ts']
     },
 
-    devServer: {
-      static: './dist'
-    },
     devtool: false,
   },
 ]
