@@ -1,8 +1,7 @@
 //  Form to collect data about a New Issue
 //
-import { ns, rdf, utils } from 'solid-ui'
-
-const $rdf = rdf
+import { ns, utils } from 'solid-ui'
+import * as $rdf from 'rdflib'
 
 export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
   const form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error

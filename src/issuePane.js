@@ -5,7 +5,7 @@
  **
  */
 
-import { create, login, ns, icons, rdf, tabs, table, utils, widgets } from 'solid-ui'
+import { create, login, ns, icons, tabs, table, utils, widgets } from 'solid-ui'
 import { store, authn } from 'solid-logic'
 import { board } from './board' // @@ will later be in solid-UI
 import { renderIssue, renderIssueCard, getState, exposeOverlay } from './issue'
@@ -13,8 +13,8 @@ import { newTrackerButton } from './newTracker'
 import { newIssueForm } from './newIssue'
 import { csvButton } from './csvButton'
 import { trackerSettingsFormText } from './ontology/trackerSettingsForm.ttl'
+import * as $rdf from 'rdflib'
 
-const $rdf = rdf
 const kb = store
 
 // const MY_TRACKERS_ICON = UI.icons.iconBase + 'noun_Document_998605.svg'

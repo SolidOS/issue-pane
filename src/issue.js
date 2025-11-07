@@ -1,10 +1,10 @@
 // All the UI for a single issue, without store load or listening for changes
 //
-import { icons, messageArea, ns, rdf, style, utils, widgets } from 'solid-ui'
+import { icons, messageArea, ns, style, utils, widgets } from 'solid-ui'
 import { authn, store } from 'solid-logic'
 import { newIssueForm } from './newIssue'
+import * as $rdf from 'rdflib'
 
-const $rdf = rdf
 const kb = store
 
 const SET_MODIFIED_DATES = false

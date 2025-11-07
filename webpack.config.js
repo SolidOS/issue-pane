@@ -43,12 +43,12 @@ export default [
       ],
     },
     externals: {
-      'solid-ui': 'SolidUI',
+      'solid-ui': 'UI',
       'solid-logic': 'SolidLogic',
       rdflib: '$rdf',
     },
     resolve: {
-      extensions: ['*', '.js', '.ts']
+      extensions: ['.js', '.ts']
     },
 
     devtool: false,

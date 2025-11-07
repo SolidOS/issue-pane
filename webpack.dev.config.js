@@ -25,13 +25,13 @@ export default [
       ],
     },
     resolve: {
-      extensions: ['*', '.js', '.ts'],
+      extensions: ['.js', '.ts'],
       alias: {
         $rdf: 'rdflib',
         rdflib: 'rdflib',
         SolidLogic: 'solid-logic',
         'solid-logic': 'solid-logic',
-        SolidUI: 'solid-ui',
+        UI: 'solid-ui',
         'solid-ui': 'solid-ui'
       }
     },
