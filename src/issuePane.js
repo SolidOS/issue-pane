@@ -1,21 +1,20 @@
-  /*   Issue Tracker Pane
+/*   Issue Tracker Pane
  **
  **  This solid view allows a user to interact with an issue tracker, or individual issue,
  ** to change its state according to an ontology, comment on it, etc.
  **
  */
 
-import { create, login, ns, icons, rdf, tabs, table, utils, widgets } from 'solid-ui'
+import { create, login, ns, icons, tabs, table, utils, widgets } from 'solid-ui'
 import { store, authn } from 'solid-logic'
 import { board } from './board' // @@ will later be in solid-UI
 import { renderIssue, renderIssueCard, getState, exposeOverlay } from './issue'
 import { newTrackerButton } from './newTracker'
 import { newIssueForm } from './newIssue'
 import { csvButton } from './csvButton'
-import { trackerSettingsFormText } from './trackerSettingsForm.js'
-// import { trackerInstancesFormText } from './trackerInstancesForm.js'
+import { trackerSettingsFormText } from './ontology/trackerSettingsForm.ttl'
+import * as $rdf from 'rdflib'
 
-const $rdf = rdf
 const kb = store
 
 // const MY_TRACKERS_ICON = UI.icons.iconBase + 'noun_Document_998605.svg'
@@ -305,7 +304,7 @@ export default {
       }
 
       const tableDiv = table(dom, {
-        query: query,
+        query,
         keyVariable: '?issue', // Charactersic of row
         sortBy: '?created', // By default, sort by date
         sortReverse: true, //   most recent at the top
@@ -327,11 +326,11 @@ export default {
       const creationContext = {
         // folder: subject,
         div: creationDiv,
-        dom: dom,
+        dom,
         noun: 'tracker',
         statusArea: creationDiv,
-        me: me,
-        refreshTarget: refreshTarget
+        me,
+        refreshTarget
       }
       const issuePane = context.session.paneRegistry.byName('issue')
       const relevantPanes = [issuePane]
@@ -419,6 +418,7 @@ export default {
 
       // Much data is in the tracker instance, so wait for the data from it
       try {
+        // eslint-disable-next-line no-unused-vars
         const _xhrs = await context.session.store.fetcher.load(tracker.doc())
       } catch (err) {
         const msg = 'Failed to load tracker config ' + tracker.doc() + ': ' + err
@@ -529,12 +529,12 @@ export default {
     const flowOntology = ns.wf('').doc()
     if (!kb.holds(undefined, undefined, undefined, flowOntology)) {
       // If not loaded already
-      $rdf.parse(require('./wf.js'), kb, flowOntology.uri, 'text/turtle') // Load ontology directly
+      $rdf.parse(require('./ontology/wf.ttl'), kb, flowOntology.uri, 'text/turtle') // Load ontology directly
     }
     const userInterfaceOntology = ns.ui('').doc()
     if (!kb.holds(undefined, undefined, undefined, userInterfaceOntology)) {
       // If not loaded already
-      $rdf.parse(require('./ui.js'), kb, userInterfaceOntology.uri, 'text/turtle') // Load ontology directly
+      $rdf.parse(require('./ontology/ui.ttl'), kb, userInterfaceOntology.uri, 'text/turtle') // Load ontology directly
     }
 
     // Render a single issue
@@ -569,7 +569,6 @@ export default {
       }
 
       loginOutButton = login.loginStatusBox(dom, webIdUri => {
-        authn.log
         if (webIdUri) {
           context.me = kb.sym(webIdUri)
           console.log('Web ID set from login button: ' + webIdUri)

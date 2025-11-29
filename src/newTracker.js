@@ -1,9 +1,8 @@
 import * as UI from 'solid-ui'
+import * as $rdf from 'rdflib'
 import { store } from 'solid-logic'
 
-const $rdf = UI.rdf
 const ns = UI.ns
-const kb = store
 const updater = store.updater
 
 /* Button for making a whole new tracker

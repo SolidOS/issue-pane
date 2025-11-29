@@ -1,6 +1,7 @@
-#Processed by Id
-        #    using base file:///Users/timbl_1/src/github.com/solidos/solidos/workspaces/issue-pane/test/big-tracker-config.ttl
-             @prefix : <tracker.n3#> .
+
+  # This is the master file for a big issue tracker
+
+    @prefix : <#> .
     @prefix con: <http://www.w3.org/2000/10/swap/pim/contact#> .
     @prefix doap: <http://usefulinc.com/ns/doap#> .
     @prefix flow: <http://www.w3.org/2005/01/wf/flow#> .
@@ -229,7 +230,7 @@
         ical:location
         <http://www.w3.org/2000/01/rdf-schema#comment>
         flow:assignee );
-         flow:stateStore <state.n3> .
+         flow:stateStore <state-big-tracker.ttl> .
     
     <tracker.n3>     <http://www.w3.org/2000/01/rdf-schema#comment> """This file defines a tracker for requests.
     """;
