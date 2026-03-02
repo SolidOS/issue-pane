@@ -60,7 +60,7 @@
     "eslint": "^9.39.2",
     "globals": "^17.1.0",
     "html-webpack-plugin": "^5.6.6",
-    "neostandard": "^0.12.2",
+    "neostandard": "^0.13.0",
     "node-polyfill-webpack-plugin": "^4.1.0",
     "rdflib": "^2.3.5",
     "solid-logic": "^4.0.2",
