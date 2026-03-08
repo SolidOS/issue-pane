@@ -1,0 +1,56 @@
+.trackerBoard {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em;
+}
+
+.trackerBoardTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trackerBoardHeader {
+  margin: 0.3em;
+  padding: 0.5em 1em;
+  font-weight: bold;
+  font-size: 120%;
+  background-color: var(--color-section-bg);
+}
+.trackerBoardColumn {
+  border: 0.01em solid white;
+  padding: 0.1em;
+  /* display: flex; flex-direction: column; align-items: center; */
+} 
+
+.trackerBoardMainRow {
+  /* display: flex; flex-direction: row; align-items: stretch; */
+} 
+
+.trackerBoardHeaderCell {
+  margin: 0.3em;
+  padding: 0.5em 1em;
+  font-weight: bold;
+  font-size: 120%;
+}
+
+.trackerBoardColumn {
+  border: 0.01em solid white;
+  padding: 0.1em;
+  /* display: flex; flex-direction: column; align-items: center; */
+} 
+.trackerBoardCard {
+  background: var(--color-card-bg);
+  border-radius: var(--border-radius-full);
+  box-shadow: var(--box-shadow);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.trackerBoardCardTable {
+  width: 100%;
+  margin: 1em;
+  border-collapse: collapse; /* not sure about this */
+} 
