@@ -1,5 +1,6 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
+import { moduleRules } from './webpack.module.rules.mjs'
 
 export default [
   {
@@ -10,37 +11,7 @@ export default [
       new NodePolyfillPlugin()
     ],
     module: {
-      rules: [
-        {
-          test: /\.(js|ts)$/,
-          exclude: /node_modules/,
-          use: ['babel-loader'],
-        },
-
-        {
-          test: /\.css$/,
-          exclude: /\.module\.css$/,
-          use: ['style-loader', 'css-loader'],
-        },
-        {
-          test: /\.module\.css$/,
-          use: [
-            'style-loader',
-            {
-              loader: 'css-loader',
-              options: {
-                modules: true
-              }
-            }
-          ]
-        },
-
-        {
-          test: /\.ttl$/, // Target text  files
-          type: 'asset/source', // Load the file's content as a string
-        },
-
-      ],
+      rules: moduleRules,
     },
     resolve: {
       extensions: ['.js', '.ts'],

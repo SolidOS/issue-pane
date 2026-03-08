@@ -5,6 +5,16 @@ At the moment to start a tracker you have to configure the config file in turtle
 
 Would be good create a mintNew method to allow new ones to be created in the UI.
 
+# Development Setup
+
+This project uses Node `20.19.2` (see `.nvmrc`).
+
+```bash
+nvm use
+npm install
+npm run start
+```
+
 # Testing Guide
 
 ## Running Tests
