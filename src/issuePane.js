@@ -14,6 +14,7 @@ import { newIssueForm } from './newIssue'
 import { csvButton } from './csvButton'
 import { trackerSettingsFormText } from './ontology/trackerSettingsForm.ttl'
 import * as $rdf from 'rdflib'
+import './styles/issuePane.css'
 
 const kb = store
 
@@ -21,7 +22,7 @@ const kb = store
 // const TRACKER_ICON = UI.icons.iconBase + 'noun_list_638112'
 // const TASK_ICON = UI.icons.iconBase + 'noun_17020.svg'
 
-const OVERFLOW_STYLE = 'position: fixed; z-index: 100; top: 1.51em; right: 2em; left: 2em; bottom:1.5em; border: 0.1em grey; overflow: scroll;'
+const OVERFLOW_STYLE = 'trackerIssuePaneOverflow'
 export default {
   icon: icons.iconBase + 'noun_122196.svg', // was: js/panes/issue/tbl-bug-22.png
   // noun_list_638112 is a checklist document
@@ -556,8 +557,8 @@ export default {
 
     let loginOutButton
     const overlay = paneDiv.appendChild(dom.createElement('div'))
+    overlay.classList.add(OVERFLOW_STYLE)
     context.overlay = overlay
-    overlay.style = OVERFLOW_STYLE
     overlay.style.visibility = 'hidden'
 
     authn.checkUser().then(webId => {
@@ -579,7 +580,7 @@ export default {
         }
       })
 
-      loginOutButton.setAttribute('style', 'margin: 0.5em 1em;')
+      loginOutButton.classList.add('trackerIssuePaneLoginButton')
       paneDiv.appendChild(loginOutButton)
       if (!context.statusArea) {
         context.statusArea = paneDiv.appendChild(dom.createElement('div'))

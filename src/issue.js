@@ -449,10 +449,12 @@ export function renderIssue (issue, context) {
   kb.fetcher.nowOrWhenFetched(messageStore, function (ok, body, _xhr) {
     if (!ok) {
       const er = dom.createElement('p')
+      er.classList.add('trackerIssueMessageAreaError')
       er.textContent = body // @@ use nice error message
       issueDiv.insertBefore(er, spacer)
     } else {
       const discussion = messageArea(dom, kb, issue, messageStore)
+      discussion.classList.add('trackerIssueMessageArea') 
       issueDiv.insertBefore(discussion, spacer)
       issueDiv.insertBefore(renderSpacer(dom, backgroundColor), discussion)
     } // Not sure why  e stuck this in upwards rather than downwards
@@ -460,6 +462,7 @@ export function renderIssue (issue, context) {
 
   // Draggable attachment list
   const attachmentHint = issueDiv.appendChild(dom.createElement('div'))
+  attachmentHint.classList.add('trackerIssueAttachmentHint')
   attachmentHint.innerHTML = `<h4>Attachments</h4>
     <p>Drag files, emails,
     web pages onto the paper clip, or click the file upload button.</p>`
@@ -487,10 +490,12 @@ export function renderIssue (issue, context) {
     issueDiv.style.backgroundColor = '#eee'
     issueDiv.style.fontColor = 'orange'
   })
+  deleteButton.classList.add('trackerIssueDeleteButton')
   deleteButton.style.float = 'right'
 
   // Refresh button
   const refreshButton = dom.createElement('button')
+  refreshButton.classList.add('trackerIssueRefreshButton')
   refreshButton.textContent = 'refresh messages'
   refreshButton.addEventListener(
     'click',

@@ -1,0 +1,12 @@
+.trackerIssuePaneOverflow {
+  position: fixed;
+  z-index: 100;
+  top: 1.51em;
+  right: 2em;
+  left: 2em;
+  bottom: 1.5em;
+  border: 0.1em grey solid;
+  overflow: scroll;
+  visibility: hidden;
+}
+
