@@ -66,7 +66,7 @@ export default {
           insertions.filter(st => st.why.sameTerm(doc))))
       return Promise.all(updates)
     }
-  
+
     const kb = context.session.store
     let stateStore
     if (options.newInstance) {
@@ -77,24 +77,24 @@ export default {
     }
     const tracker = options.newInstance
     const appDoc = tracker.doc()
-  
+
     const me = authn.currentUser()
     if (me) {
       kb.add(tracker, ns.dc('author'), me, appDoc)
     }
-  
+
     kb.add(tracker, ns.rdf('type'), ns.wf('Tracker'), appDoc)
     kb.add(tracker, ns.dc('created'), new Date(), appDoc)
-  
+
     // @@ to do --- adk user what sort of tracker they want
-  
+
     kb.add(tracker, ns.wf('issueClass'), ns.wf('Task'), appDoc) // @@ ask user
     kb.add(tracker, ns.wf('initialState'), ns.wf('Open'), appDoc)
     kb.add(tracker, ns.wf('stateStore'), stateStore, appDoc)
     kb.add(tracker, ns.wf('assigneeClass'), ns.foaf('Person'), appDoc) // @@ set to people in the meeting?
-  
+
     kb.add(tracker, ns.wf('stateStore'), stateStore, stateStore) // Back Link
-  
+
     const ins = kb.statementsMatching(undefined, undefined, undefined, appDoc).concat(kb.statementsMatching(undefined, undefined, undefined, stateStore))
     try {
       await updateMany([], ins)
@@ -110,7 +110,7 @@ export default {
   */
     const dom = context.dom
     const div = options.div
-  
+
     const notice = div.appendChild(dom.createElement('div'))
     notice.innerHTML = `<h4>Success</h4>
     <p>Your <a href="${tracker.uri}">new tracker</a> has been made.
@@ -452,7 +452,7 @@ export default {
     }
 
     async function renderTracker () {
-        function showNewIssue (issue) {
+      function showNewIssue (issue) {
         widgets.refreshTree(paneDiv)
         exposeOverlay(issue, context)
         newIssueButton.disabled = false // https://stackoverflow.com/questions/41176582/enable-disable-a-button-in-pure-javascript
@@ -602,4 +602,3 @@ export default {
     return paneDiv
   }
 }
-
