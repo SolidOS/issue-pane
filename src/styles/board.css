@@ -1,11 +1,11 @@
 .trackerBoard {
-  width: 100%;
+  width: fit-content;
   border-collapse: collapse;
   margin: 1em;
 }
 
 .trackerBoardTable {
-  width: 100%;
+  width: fit-content;
   border-collapse: collapse;
 }
 
