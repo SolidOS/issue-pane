@@ -2,9 +2,11 @@
 //
 import { ns, utils } from 'solid-ui'
 import * as $rdf from 'rdflib'
+import './styles/newIssue.css'
 
 export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
   const form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error
+  form.classList.add('trackerNewIssueForm')
   const stateStore = kb.any(tracker, ns.wf('stateStore'))
 
   const timestring = function () {
@@ -94,12 +96,8 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
     classLabel +
     ':</p>'
   const titlefield = dom.createElement('input')
+  titlefield.classList.add('trackerNewIssueTitleField')
   titlefield.setAttribute('type', 'text')
-  titlefield.setAttribute(
-    'style',
-    'margin: 0.5em; font-size: 100%; padding: 0.3em;'
-  )
-  titlefield.setAttribute('size', '100')
   titlefield.setAttribute('maxLength', '2048') // No arbitrary limits
   titlefield.select() // focus next user input
   titlefield.addEventListener(
