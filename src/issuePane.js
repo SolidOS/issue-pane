@@ -492,9 +492,7 @@ export default {
         'click',
         function (_event) {
           newIssueButton.disabled = true
-          container.appendChild(newIssueForm(dom, kb, tracker, null, showNewIssue, function () {
-            newIssueButton.disabled = false
-          }))
+          container.appendChild(newIssueForm(dom, kb, tracker, null, showNewIssue))
         },
         false
       )
@@ -565,7 +563,7 @@ export default {
 
     let loginOutButton
     const overlay = paneDiv.appendChild(dom.createElement('div'))
-    overlay.classList.add(OVERFLOW_STYLE)
+    overlay.classList.add(OVERFLOW_CLASS)
     context.overlay = overlay
     overlay.style.visibility = 'hidden'
 
