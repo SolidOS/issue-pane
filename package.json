@@ -3,6 +3,10 @@
   "version": "3.0.1",
   "description": "Solid-compatible Panes: issue editor",
   "main": "dist/issuePane.js",
+  "exports": {
+    ".": "./dist/issuePane.js",
+    "./issuePane": "./dist/issuePane.js"
+  },
   "sideEffects": [
     "**/*.css"
   ],

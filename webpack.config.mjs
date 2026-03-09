@@ -9,7 +9,7 @@ export default [
       board: './src/board.js',
       csvButton: './src/csvButton.js',
       issue: './src/issue.js',
-      issuePane: './src/issuePane.js',
+      issuePane: './src/index.js',
       newIssue: './src/newIssue.js',
       newTracker: './src/newTracker.js',
     },
