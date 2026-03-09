@@ -276,6 +276,7 @@ button, [role="button"] {
   font-weight: 600;
   transition: all var(--animation-duration) ease;
   position: relative;
+  border: 1px solid grey;
 }
 
 button:disabled, [role="button"][aria-disabled="true"] {

@@ -3,7 +3,9 @@
   "version": "3.0.1",
   "description": "Solid-compatible Panes: issue editor",
   "main": "dist/issuePane.js",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist/",
     "README.md",

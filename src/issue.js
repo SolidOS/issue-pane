@@ -108,13 +108,13 @@ export function exposeOverlay (subject, context) {
   const overlay = context.overlay
   overlay.classList.add('trackerOverlay')
   overlay.innerHTML = '' // clear existing
-  const button = overlay.appendChild(
+  const issuePanel = renderIssue(subject, context)
+  overlay.appendChild(issuePanel)
+  const button = issuePanel.appendChild(
     widgets.button(context.dom, icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
   button.classList.add('trackerOverlayCloseButton')
   delete button.style.backgroundColor // do not want white
   overlay.style.visibility = 'visible'
-  overlay.appendChild(renderIssue(subject, context))
-  overlay.firstChild.style.overflow = 'auto' // SAM what element is firstChild was scroll
 }
 
 function renderSpacer (dom, backgroundColor) {
@@ -488,10 +488,9 @@ export function renderIssue (issue, context) {
     // @@ refreshTree
     complain('DELETED OK', context)
     issueDiv.style.backgroundColor = '#eee'
-    issueDiv.style.fontColor = 'orange'
+    issueDiv.style.color = 'orange'
   })
   deleteButton.classList.add('trackerIssueDeleteButton')
-  deleteButton.style.float = 'right'
 
   // Refresh button
   const refreshButton = dom.createElement('button')

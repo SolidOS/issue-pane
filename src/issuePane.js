@@ -181,6 +181,7 @@ export default {
 
       // These are states we will show by default: the open issues.
       const stateArray = kb.any(klass, ns.owl('disjointUnionOf'))
+
       if (!stateArray) {
         return complain(`Configuration error: state ${states} does not have substates`)
       }
@@ -222,6 +223,7 @@ export default {
       }
       // const columnValues = states // @@ optionally selected states would work
       const boardDiv = board(dom, columnValues, localRenderIssueCard, options)
+      boardDiv.classList.add('trackerBoard')
       return boardDiv
     }
 
@@ -317,6 +319,7 @@ export default {
       })
       const stateStore = kb.any(subject, ns.wf('stateStore'))
       tableDiv.appendChild(tableRefreshButton(stateStore, tableDiv))
+      tableDiv.classList.add('trackerBoardTable')
       return tableDiv
     }
 
@@ -336,6 +339,7 @@ export default {
       const issuePane = context.session.paneRegistry.byName('issue')
       const relevantPanes = [issuePane]
       create.newThingUI(creationContext, context, relevantPanes) // Have to pass panes down  newUI
+      creationDiv.classList.add('trackerCreationControlContainer')
       return creationDiv
     }
 
@@ -472,21 +476,25 @@ export default {
       const newIssueButton = dom.createElement('button')
       const container = dom.createElement('div')
       newIssueButton.setAttribute('type', 'button')
-      newIssueButton.setAttribute('style', 'padding: 0.3em; font-size: 100%; margin: 0.5em;')
+      newIssueButton.classList.add('trackerIssuePaneNewIssueButton')
+      container.classList.add('trackerIssuePaneNewIssueButtonContainer')
       container.appendChild(newIssueButton)
       paneDiv.appendChild(container)
       const img = dom.createElement('img')
+      img.classList.add('trackerIssuePaneNewIssueButtonImage')
       img.setAttribute('src', icons.iconBase + 'noun_19460_green.svg')
-      img.setAttribute('style', 'width: 1em; height: 1em; margin: 0.2em;')
       newIssueButton.appendChild(img)
       const span = dom.createElement('span')
+      span.classList.add('trackerIssuePaneNewIssueButtonText')
       span.innerHTML = 'New ' + classLabel
       newIssueButton.appendChild(span)
       newIssueButton.addEventListener(
         'click',
         function (_event) {
           newIssueButton.disabled = true
-          container.appendChild(newIssueForm(dom, kb, tracker, null, showNewIssue))
+          container.appendChild(newIssueForm(dom, kb, tracker, null, showNewIssue, function () {
+            newIssueButton.disabled = false
+          }))
         },
         false
       )

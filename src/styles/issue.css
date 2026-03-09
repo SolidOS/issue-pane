@@ -9,7 +9,7 @@
   width: 100%;
 }
 .trackerBoardIssueCardTable td {
-  padding: 0.1em;
+  padding: 0.1em 0.7em 0.1em 0.1em;
 }
 .trackerBoardIssueCardTable img {
   width: 1.5em;
@@ -26,8 +26,10 @@
   background: none;
   border: none;
   cursor: pointer;
-  float: right;
-  margin: 0.7em;
+  position: absolute;
+  top: 0.7em;
+  right: 0.7em;
+  margin: 0;
 }
 .trackerOverlay {
   position: fixed;
@@ -43,6 +45,7 @@
 }
 
 .trackerIssue {
+  position: relative;
   background: white;
   padding: 1em;
   border-radius: 0.5em;
@@ -100,10 +103,11 @@
 
 .trackerIssueTrackerLink {
   float: right;
+  margin: 0.5em 4em;
+  padding: 0.5em;
 }
 
 .trackerIssueDeleteButton {
-  background-color: #ff4d4d;
   color: white;
   border: none;
   padding: 0.5em;
@@ -111,8 +115,23 @@
   cursor: pointer;
   float: right; /* this is the only one from the code */
 }
-.trackerIssueRefreshButton {
 
+/* below styles the remove task popup */
+.trackerIssue > div[style*="position: relative"] {
+  z-index: 2000;
+}
+
+.trackerIssue > div[style*="position: relative"] > div[style*="position: absolute"] {
+  top: -1em !important;
+  left: 50% !important;
+  transform: translate(-55%, -3em);
+  z-index: 2001;
+}
+
+.trackerIssueRefreshButton {
+  clear: both;
+  position: relative;
+  z-index: 1;
 }
 
 /* below not from code from ai */

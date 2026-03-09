@@ -1,3 +1,55 @@
+.trackerBoardTable {
+  width: fit-content;
+  border-collapse: collapse;
+}
+.trackerBoardTable td {
+  padding: 0.1em 0.7em 0.1em 0.1em;
+}
+.trackerBoardTable img {
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+}
+
+.trackerIssuePaneNewIssueButtonContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.trackerIssuePaneNewIssueButton {
+  display: inline-flex;
+  background-color: #F0F0F0;
+  color: #505050;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  border: 1px solid grey;
+  border-radius: 0.4em;
+  cursor: pointer;
+  gap: 0.5em;
+  white-space: nowrap;
+  text-align: left;
+  padding: 0.5em;
+  font-size: 100%;
+  margin: 0.5em;
+}
+
+.trackerIssuePaneNewIssueButton > .trackerIssuePaneNewIssueButtonImage {
+  order: 1;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0.2em;
+  vertical-align: middle;
+}
+
+.trackerIssuePaneNewIssueButton > .trackerIssuePaneNewIssueButtonText {
+  order: 2;
+  display: inline-block;
+  margin-left: 0;
+  vertical-align: middle;
+}
+
 .trackerIssuePaneOverflow {
   position: fixed;
   z-index: 100;
