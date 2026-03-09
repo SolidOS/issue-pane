@@ -30,7 +30,7 @@ export function board (dom, columnValues, renderItem, options) {
     cell.classList.add('trackerBoardHeaderCell')
     cell.textContent = utils.label(x, true) // Initial capital
     cell.subject = x
- 
+
     const column = mainRow.appendChild(dom.createElement('td'))
     column.classList.add('trackerBoardColumn')
     column.subject = x
@@ -55,13 +55,13 @@ export function board (dom, columnValues, renderItem, options) {
     const card = dom.createElement('div')
     card.classList.add('trackerBoardCard')
     const table = card.appendChild(dom.createElement('table'))
-    table.classList.add('trackerBoardCardTable')  
+    table.classList.add('trackerBoardCardTable')
     const classes = store.each(item, ns.rdf('type'))
     const catColors = classes.map(cat => store.any(cat, ns.ui('backgroundColor'))).filter(c => c)
 
     table.appendChild(widgets.personTR(dom, null, item))
     table.subject = item
-    
+
     const backgroundColor = catColors[0] || store.any(category, ns.ui('backgroundColor'))
     card.style.backgroundColor = backgroundColor ? backgroundColor.value : '#fff'
     return card

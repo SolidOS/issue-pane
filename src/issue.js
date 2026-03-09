@@ -70,13 +70,13 @@ export function renderIssueCard (issue, context) {
   img.setAttribute('src', icons.iconBase + 'noun_Danger_1259514.svg') // override
   // Add a button for viewing the whole issue in overlay
   const buttonsCell = card.firstChild.firstChild.children[2] // right hand part of card
-  buttonsCell.classList.add('trackerBoardIssueCardButtons') 
+  buttonsCell.classList.add('trackerBoardIssueCardButtons')
   const editButton = widgets.button(dom, icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
     exposeOverlay(issue, context)
   })
-  editButton.classList.add('trackerBoardIssueCardEditButton') 
+  editButton.classList.add('trackerBoardIssueCardEditButton')
   const editButtonImage = editButton.firstChild
-  editButtonImage.classList.add('trackerBoardIssueCardEditButtonImage') 
+  editButtonImage.classList.add('trackerBoardIssueCardEditButtonImage')
   editButtonImage.style.width = editButtonImage.style.height = '1.5em'
   buttonsCell.appendChild(editButton)
 
@@ -170,7 +170,7 @@ export function renderIssue (issue, context) {
     const opt = kb.any(tracker, ns.ui(option))
     return !!(opt && opt.value)
   }
-// SAM take a look at this.  
+  // SAM take a look at this.
   function setPaneStyle () {
     const backgroundColor = getBackgroundColorFromTypes(issue) || '#eee' // default grey
     const mystyle0 = 'padding: 0.5em 1.5em 1em 1.5em; border: 0.7em;'
@@ -454,7 +454,7 @@ export function renderIssue (issue, context) {
       issueDiv.insertBefore(er, spacer)
     } else {
       const discussion = messageArea(dom, kb, issue, messageStore)
-      discussion.classList.add('trackerIssueMessageArea') 
+      discussion.classList.add('trackerIssueMessageArea')
       issueDiv.insertBefore(discussion, spacer)
       issueDiv.insertBefore(renderSpacer(dom, backgroundColor), discussion)
     } // Not sure why  e stuck this in upwards rather than downwards

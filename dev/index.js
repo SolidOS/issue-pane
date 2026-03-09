@@ -33,8 +33,8 @@ finishLogin()
 // const targetURIToShow = "https://solidproject.solidcommunity.net/Roadmap/index.ttl#this";
 
 // const targetURIToShow = "https://timbl.com/timbl/Automation/mother/tracker.n3#mother"
-const targetURIToShow = "https://sstratsianis.solidcommunity.net/TestingTracker/index.ttl#this";
-//const targetURIToShow = new URL('./big-tracker.ttl#this', window.location.href).href
+const targetURIToShow = 'https://sstratsianis.solidcommunity.net/TestingTracker/index.ttl#this'
+// const targetURIToShow = new URL('./big-tracker.ttl#this', window.location.href).href
 
 fetcher.load(targetURIToShow).then(() => {
   const app = pane.render(sym(targetURIToShow), context)

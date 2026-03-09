@@ -32,7 +32,7 @@ export function newTrackerButton (thisTracker, context) {
       }
       return kb.sym(u)
     }
-    
+
     const appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
     // console.log("Ready to make new instance at "+ws)
     const sp = UI.ns.space
