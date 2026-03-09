@@ -1,0 +1,130 @@
+.trackerBoardIssueCard {
+  margin: 0.3em;
+  max-width: 24em;
+  padding: 0.5em;
+  border: 0.05em solid grey;
+  border-radius: 0.4em;
+}
+.trackerBoardIssueCardTable {
+  width: 100%;
+}
+.trackerBoardIssueCardTable td {
+  padding: 0.1em;
+}
+.trackerBoardIssueCardTable img {
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+}
+
+.trackerBoardIssueCardTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trackerOverlayCloseButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  float: right;
+  margin: 0.7em;
+}
+.trackerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.trackerIssue {
+  background: white;
+  padding: 1em;
+  border-radius: 0.5em;
+  max-width: 80%;
+  max-height: 80%;
+  overflow: auto;
+}
+
+.trackerIssueIconButton {
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+}
+
+.trackerIssueSpacer {
+  height: 1em;
+  margin: 0.5em;
+}
+
+.trackerIssueForm {
+  margin-top: 1em;
+  padding: 0.5em;
+  border: 0.05em solid grey;
+  border-radius: 0.4em;
+}
+.trackerIssueSubIssuePanel {
+  margin: 1em;
+  padding: 1em;
+  border: 0.05em solid grey;
+  border-radius: 0.4em;
+
+}
+
+.trackerIssueSubIssuePanelSupersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.trackerIssueSubIssuePanelSubsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  flex-direction:  row-reverse; /* Not sure if it should be row or column */
+}
+.trackerIssueSubIssuePanelNewSubButton {
+  margin: 0.5em 1em;
+  padding: 0.5em;
+  border: 0.05em solid grey;
+  border-radius: 0.4em;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  float: right;
+}
+
+.trackerIssueTrackerLink {
+  float: right;
+}
+
+.trackerIssueDeleteButton {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 0.5em;
+  border-radius: 0.4em;
+  cursor: pointer;
+  float: right; /* this is the only one from the code */
+}
+.trackerIssueRefreshButton {
+
+}
+
+/* below not from code from ai */
+.trackerIssueMessageArea {
+  border: 0.05em solid grey;
+  border-radius: 0.4em;
+  padding: 1em;
+}
+
+.trackerIssueMessageAreaError {
+  color: red;
+  font-weight: bold;
+}
+/* ends here for ai generated */
+

@@ -4,6 +4,7 @@ import { icons, messageArea, ns, style, utils, widgets } from 'solid-ui'
 import { authn, store } from 'solid-logic'
 import { newIssueForm } from './newIssue'
 import * as $rdf from 'rdflib'
+import './styles/issue.css'
 
 const kb = store
 
@@ -58,21 +59,24 @@ export function renderIssueCard (issue, context) {
   const uncategorized = !getBackgroundColorFromTypes(issue) // This is a suspect issue. Prompt to delete it
 
   const card = dom.createElement('div')
+  card.classList.add('trackerBoardIssueCard')
   const table = card.appendChild(dom.createElement('table'))
-  table.style.width = '100%'
+  table.classList.add('trackerBoardIssueCardTable')
   const options = { draggable: false } // Let the board make the whole card draggable
   table.appendChild(widgets.personTR(dom, null, issue, options))
   table.subject = issue
-  card.style = 'border-radius: 0.4em; border: 0.05em solid grey; margin: 0.3em;'
 
   const img = card.firstChild.firstChild.firstChild.firstChild // div/table/tr/td/img
   img.setAttribute('src', icons.iconBase + 'noun_Danger_1259514.svg') // override
   // Add a button for viewing the whole issue in overlay
   const buttonsCell = card.firstChild.firstChild.children[2] // right hand part of card
+  buttonsCell.classList.add('trackerBoardIssueCardButtons') 
   const editButton = widgets.button(dom, icons.iconBase + 'noun_253504.svg', 'edit', async _event => {
     exposeOverlay(issue, context)
   })
+  editButton.classList.add('trackerBoardIssueCardEditButton') 
   const editButtonImage = editButton.firstChild
+  editButtonImage.classList.add('trackerBoardIssueCardEditButtonImage') 
   editButtonImage.style.width = editButtonImage.style.height = '1.5em'
   buttonsCell.appendChild(editButton)
 
@@ -91,7 +95,6 @@ export function renderIssueCard (issue, context) {
     })
     buttonsCell.appendChild(deleteButton)
   }
-  card.style.maxWidth = '24em' // @@ User adjustable??
   card.refresh = refresh
   refresh()
   return card
@@ -103,20 +106,20 @@ export function exposeOverlay (subject, context) {
     overlay.style.visibility = 'hidden'
   }
   const overlay = context.overlay
+  overlay.classList.add('trackerOverlay')
   overlay.innerHTML = '' // clear existing
   const button = overlay.appendChild(
     widgets.button(context.dom, icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
-  button.style.float = 'right'
-  button.style.margin = '0.7em'
+  button.classList.add('trackerOverlayCloseButton')
   delete button.style.backgroundColor // do not want white
   overlay.style.visibility = 'visible'
   overlay.appendChild(renderIssue(subject, context))
-  overlay.firstChild.style.overflow = 'auto' // was scroll
+  overlay.firstChild.style.overflow = 'auto' // SAM what element is firstChild was scroll
 }
 
 function renderSpacer (dom, backgroundColor) {
   const spacer = dom.createElement('div')
-  spacer.setAttribute('style', 'height: 1em; margin: 0.5em;') // spacer and placeHolder
+  spacer.classList.add('trackerIssueSpacer')
   spacer.style.backgroundColor = backgroundColor // try that
   return spacer
 }
@@ -167,7 +170,7 @@ export function renderIssue (issue, context) {
     const opt = kb.any(tracker, ns.ui(option))
     return !!(opt && opt.value)
   }
-
+// SAM take a look at this.  
   function setPaneStyle () {
     const backgroundColor = getBackgroundColorFromTypes(issue) || '#eee' // default grey
     const mystyle0 = 'padding: 0.5em 1.5em 1em 1.5em; border: 0.7em;'
@@ -187,6 +190,7 @@ export function renderIssue (issue, context) {
   const store = issue.doc()
 
   const issueDiv = dom.createElement('div')
+  issueDiv.classList.add('trackerIssue')
   const me = authn.currentUser()
   const backgroundColor = getBackgroundColorFromTypes(issue) || 'white'
 
@@ -195,6 +199,7 @@ export function renderIssue (issue, context) {
   authn.checkUser() // kick off async operation
 
   const iconButton = issueDiv.appendChild(widgets.button(dom, iconForIssue(issue)))
+  iconButton.classList.add('trackerIssueIconButton')
   widgets.makeDraggable(iconButton, issue) // Drag me wherever you need to do stuff with this issue
 
   const states = kb.any(tracker, ns.wf('issueClass'))
@@ -239,8 +244,8 @@ export function renderIssue (issue, context) {
 
   // For when issue is the main solo subject, include link to tracker itself.
   const a = dom.createElement('a')
+  a.classList.add('trackerIssueTrackerLink')
   a.setAttribute('href', tracker.uri)
-  a.setAttribute('style', 'float:right')
   issueDiv.appendChild(a).textContent = utils.label(tracker)
   a.addEventListener('click', widgets.openHrefInOutlineMode, true)
 
@@ -281,6 +286,7 @@ export function renderIssue (issue, context) {
     stateStore,
     complainIfBad
   )
+  form.classList.add('trackerIssueForm')
   issueDiv.appendChild(form)
   form.style.backgroundColor = backgroundColor
 
@@ -364,11 +370,11 @@ export function renderIssue (issue, context) {
   }
   if (getOption(tracker, 'allowSubIssues')) {
     const subIssuePanel = issueDiv.appendChild(dom.createElement('div'))
-    subIssuePanel.style = 'margin: 1em; padding: 1em;'
+    subIssuePanel.classList.add('trackerIssueSubIssuePanel')
 
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Super Issues'
     const listOfSupers = subIssuePanel.appendChild(dom.createElement('div'))
-    listOfSupers.style.display = 'flex'
+    listOfSupers.classList.add('trackerIssueSubIssuePanelSupersList')
     listOfSupers.refresh = function () {
       // const supers = kb.each(null, ns.wf('dependent'), issue, issue.doc())
       const supers = supersOver(issue)
@@ -379,8 +385,7 @@ export function renderIssue (issue, context) {
     // Sub issues
     subIssuePanel.appendChild(dom.createElement('h4')).textContent = 'Sub Issues'
     const listOfSubs = subIssuePanel.appendChild(dom.createElement('div'))
-    listOfSubs.style.display = 'flex'
-    listOfSubs.style.flexDirection = 'reverse' // Or center
+    listOfSubs.classList.add('trackerIssueSubIssuePanelSubsList')
     listOfSubs.refresh = function () {
       const subs = kb.each(issue, ns.wf('dependent'), null, issue.doc())
       utils.syncTableToArrayReOrdered(listOfSubs, subs, renderSubIssue)
@@ -388,11 +393,11 @@ export function renderIssue (issue, context) {
     listOfSubs.refresh()
 
     const b = dom.createElement('button')
+    b.classList.add('trackerIssueSubIssuePanelNewSubButton')
     b.setAttribute('type', 'button')
     subIssuePanel.appendChild(b)
     const classLabel = utils.label(states)
     b.innerHTML = 'New sub ' + classLabel
-    b.setAttribute('style', 'float: right; margin: 0.5em 1em;')
     b.addEventListener(
       'click',
       function (_event) {
@@ -422,7 +427,7 @@ export function renderIssue (issue, context) {
   //   Comment/discussion area
 
   const spacer = issueDiv.appendChild(renderSpacer(dom, backgroundColor))
-
+  spacer.classList.add('trackerIssueSpacer')
   const template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
   /*
   var chatDocURITemplate = kb.anyValue(tracker, ns.wf('chatDocURITemplate')) // relaive to issue
