@@ -22,7 +22,7 @@ const kb = store
 // const TRACKER_ICON = UI.icons.iconBase + 'noun_list_638112'
 // const TASK_ICON = UI.icons.iconBase + 'noun_17020.svg'
 
-const OVERFLOW_STYLE = 'trackerIssuePaneOverflow'
+const OVERFLOW_CLASS = 'trackerIssuePaneOverflow'
 export default {
   icon: icons.iconBase + 'noun_122196.svg', // was: js/panes/issue/tbl-bug-22.png
   // noun_list_638112 is a checklist document
