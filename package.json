@@ -2,21 +2,18 @@
   "name": "issue-pane",
   "version": "3.0.1",
   "description": "Solid-compatible Panes: issue editor",
-  "main": "dist/issuePane.js",
-  "exports": {
-    ".": "./dist/issuePane.js",
-    "./issuePane": "./dist/issuePane.js"
-  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "sideEffects": [
     "**/*.css"
   ],
   "files": [
-    "dist/",
+    "lib/",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf lib",
     "build": "npm run clean && npm run build-dist",
     "build-dist": "webpack --progress",
     "lint": "eslint",
