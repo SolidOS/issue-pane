@@ -1,3 +1,3 @@
 .trackerNewTrackerButton {
-  margin: 0.5em 1em;
+  margin: var(--spacing-sm) var(--spacing-md);
 }

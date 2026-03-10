@@ -24,14 +24,14 @@
   align-items: center;
   justify-content: flex-start;
   border: 1px solid grey;
-  border-radius: 0.4em;
+  border-radius: var(--border-radius-base);
   cursor: pointer;
-  gap: 0.5em;
+  gap: var(--spacing-sm);
   white-space: nowrap;
   text-align: left;
-  padding: 0.5em;
+  padding: var(--spacing-sm);
   font-size: 100%;
-  margin: 0.5em;
+  margin: var(--spacing-sm);
 }
 
 .trackerIssuePaneNewIssueButton > .trackerIssuePaneNewIssueButtonImage {
@@ -61,5 +61,5 @@
   overflow: scroll;
 }
 .trackerIssuePaneLoginButton {
-  margin: 0.5em 1em;
+  margin: var(--spacing-sm) var(--spacing-md);
 }

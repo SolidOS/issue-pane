@@ -10,8 +10,8 @@
 }
 
 .trackerBoardHeader {
-  margin: 0.3em;
-  padding: 0.5em 1em;
+  margin: var(--spacing-sm);
+  padding: var(--spacing-sm) 1em;
   font-weight: bold;
   font-size: 120%;
 }
@@ -22,13 +22,9 @@
   /* display: flex; flex-direction: column; align-items: center; */
 } 
 
-.trackerBoardMainRow {
-  /* display: flex; flex-direction: row; align-items: stretch; */
-} 
-
 .trackerBoardHeaderCell {
-  margin: 0.3em;
-  padding: 0.5em 1em;
+  margin: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   font-weight: bold;
   font-size: 120%;
 }
@@ -36,11 +32,11 @@
 .trackerBoardCard {
   width: 100%;
   border: 0.01em solid grey;
-  border-radius: 0.5em;
-  padding: 0.5em;
-  margin: 0.5em 0;
+  border-radius: var(--border-radius-base);
+  padding: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
 }
 
 .trackerBoardCardTable {
-  margin: 1em;
+  margin: var(--spacing-md);
 } 
