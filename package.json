@@ -9,17 +9,9 @@
   ],
   "files": [
     "lib/",
-    "index.d.ts",
-    "declarations.d.ts",
     "README.md",
     "LICENSE"
   ],
-  "exports": {
-    ".": {
-      "types": "./index.d.ts",
-      "default": "./lib/issue-pane.js"
-    }
-  },
   "scripts": {
     "clean": "rm -rf lib",
     "build": "npm run clean && npm run build-dist",
