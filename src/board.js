@@ -13,26 +13,27 @@
 import { ns, utils, widgets } from 'solid-ui'
 import { store } from 'solid-logic'
 import * as $rdf from 'rdflib'
+import './styles/board.css'
 
 export function board (dom, columnValues, renderItem, options) {
   const board = dom.createElement('div')
-  board.style = 'width: 100%;'
-  board.style.margin = '1em'
+  board.classList.add('trackerBoard')
   const table = board.appendChild(dom.createElement('table'))
-  table.style = 'width: 100%;'
-  table.style.borderCollapse = 'collapse'
+  table.classList.add('trackerBoardTable')
 
   const headerRow = table.appendChild(dom.createElement('tr'))
+  headerRow.classList.add('trackerBoardHeader')
   const mainRow = table.appendChild(dom.createElement('tr'))
+  mainRow.classList.add('trackerBoardMainRow')
   columnValues.forEach(x => {
     const cell = headerRow.appendChild(dom.createElement('th'))
+    cell.classList.add('trackerBoardHeaderCell')
     cell.textContent = utils.label(x, true) // Initial capital
     cell.subject = x
-    cell.style = 'margin: 0.3em; padding: 0.5em 1em; font-treatment: bold; font-size: 120%;'
 
     const column = mainRow.appendChild(dom.createElement('td'))
+    column.classList.add('trackerBoardColumn')
     column.subject = x
-    column.style = 'border: 0.01em solid white; padding: 0.1em;' // display: flex; flex-direction: column; align-items: center;
 
     function droppedURIHandler (uris) {
       uris.forEach(function (u) {
@@ -52,13 +53,15 @@ export function board (dom, columnValues, renderItem, options) {
   */
   function defaultRenderItem (item, category) {
     const card = dom.createElement('div')
+    card.classList.add('trackerBoardCard')
     const table = card.appendChild(dom.createElement('table'))
+    table.classList.add('trackerBoardCardTable')
     const classes = store.each(item, ns.rdf('type'))
     const catColors = classes.map(cat => store.any(cat, ns.ui('backgroundColor'))).filter(c => c)
 
     table.appendChild(widgets.personTR(dom, null, item))
     table.subject = item
-    table.style = 'margin: 1em;' // @@ use style.js
+
     const backgroundColor = catColors[0] || store.any(category, ns.ui('backgroundColor'))
     card.style.backgroundColor = backgroundColor ? backgroundColor.value : '#fff'
     return card

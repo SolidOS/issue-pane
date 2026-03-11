@@ -1,6 +1,7 @@
 import * as UI from 'solid-ui'
 import * as $rdf from 'rdflib'
 import { store } from 'solid-logic'
+import './styles/newTracker.css'
 
 const ns = UI.ns
 const updater = store.updater
@@ -125,7 +126,6 @@ export function newTrackerButton (thisTracker, context) {
     // @@ Optionally link new instance to list of instances -- both ways? and to child/parent?
     // @@ Set up access control for new config and store.
   }) // callback to newAppInstance
-
-  button.setAttribute('style', 'margin: 0.5em 1em;')
+  button.classList.add('trackerNewTrackerButton')
   return button
 } // newTrackerButton

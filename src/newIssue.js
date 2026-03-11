@@ -2,10 +2,13 @@
 //
 import { ns, utils } from 'solid-ui'
 import * as $rdf from 'rdflib'
+import './styles/newIssue.css'
 
-export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
+export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue, onCancel) {
   const form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error
+  form.classList.add('trackerNewIssueForm')
   const stateStore = kb.any(tracker, ns.wf('stateStore'))
+  onCancel = onCancel || function () {}
 
   const timestring = function () {
     const now = new Date()
@@ -86,20 +89,32 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue) {
 
   const states = kb.any(tracker, ns.wf('issueClass'))
   const classLabel = utils.label(states)
-  form.innerHTML =
-    '<h2>Add new ' +
-    (superIssue ? 'sub ' : '') +
-    classLabel +
-    '</h2><p>Title of new ' +
-    classLabel +
-    ':</p>'
+  const closeForm = function () {
+    if (form.parentNode) {
+      form.parentNode.removeChild(form)
+    }
+    onCancel()
+  }
+
+  const header = form.appendChild(dom.createElement('div'))
+  header.classList.add('trackerNewIssueHeader')
+
+  const heading = header.appendChild(dom.createElement('h2'))
+  heading.textContent = 'Add new ' + (superIssue ? 'sub ' : '') + classLabel
+
+  const closeButton = header.appendChild(dom.createElement('button'))
+  closeButton.classList.add('trackerNewIssueCloseButton')
+  closeButton.setAttribute('type', 'button')
+  closeButton.setAttribute('aria-label', 'Close new issue form')
+  closeButton.textContent = '×'
+  closeButton.addEventListener('click', closeForm, false)
+
+  const prompt = form.appendChild(dom.createElement('p'))
+  prompt.textContent = 'Title of new ' + classLabel + ':'
+
   const titlefield = dom.createElement('input')
+  titlefield.classList.add('trackerNewIssueTitleField')
   titlefield.setAttribute('type', 'text')
-  titlefield.setAttribute(
-    'style',
-    'margin: 0.5em; font-size: 100%; padding: 0.3em;'
-  )
-  titlefield.setAttribute('size', '100')
   titlefield.setAttribute('maxLength', '2048') // No arbitrary limits
   titlefield.select() // focus next user input
   titlefield.addEventListener(

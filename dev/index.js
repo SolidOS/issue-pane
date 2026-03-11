@@ -1,5 +1,6 @@
 import { sym } from 'rdflib'
-import pane from '../src/issuePane'
+import pane from '../src/index'
+import './dev-global.css' // Import after src to override component styles
 import { context, fetcher } from './context'
 import { authn, authSession } from 'solid-logic'
 import * as UI from 'solid-ui'
@@ -32,7 +33,7 @@ finishLogin()
 // const targetURIToShow = "https://solidproject.solidcommunity.net/Roadmap/index.ttl#this";
 
 // const targetURIToShow = "https://timbl.com/timbl/Automation/mother/tracker.n3#mother"
-
+// const targetURIToShow = 'https://sstratsianis.solidcommunity.net/TestingTracker/index.ttl#this'
 const targetURIToShow = new URL('./big-tracker.ttl#this', window.location.href).href
 
 fetcher.load(targetURIToShow).then(() => {

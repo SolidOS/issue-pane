@@ -2,15 +2,18 @@
   "name": "issue-pane",
   "version": "3.0.1",
   "description": "Solid-compatible Panes: issue editor",
-  "main": "dist/issuePane.js",
-  "sideEffects": false,
+  "main": "lib/issue-pane.js",
+  "types": "lib/index.d.ts",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
-    "dist/",
+    "lib/",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf lib",
     "build": "npm run clean && npm run build-dist",
     "build-dist": "webpack --progress",
     "lint": "eslint",
@@ -43,6 +46,9 @@
     "url": "https://github.com/SolidOS/issue-pane/issues"
   },
   "homepage": "https://github.com/SolidOS/issue-pane",
+  "engines": {
+    "node": ">=20.19.2"
+  },
   "dependencies": {
     "@babel/runtime": "^7.28.6"
   },
@@ -57,6 +63,8 @@
     "@eslint/js": "^9.39.2",
     "babel-loader": "^10.0.0",
     "babel-plugin-inline-import": "^3.0.0",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^7.1.2",
     "eslint": "^9.39.2",
     "globals": "^17.1.0",
     "html-webpack-plugin": "^5.6.6",
@@ -65,6 +73,7 @@
     "rdflib": "^2.3.5",
     "solid-logic": "^4.0.2",
     "solid-ui": "^3.0.3",
+    "style-loader": "^4.0.0",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.3"
   }

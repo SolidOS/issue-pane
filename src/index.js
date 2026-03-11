@@ -14,6 +14,12 @@ import { newIssueForm } from './newIssue'
 import { csvButton } from './csvButton'
 import { trackerSettingsFormText } from './ontology/trackerSettingsForm.ttl'
 import * as $rdf from 'rdflib'
+import './styles/issue.css'
+import './styles/board.css'
+import './styles/newTracker.css'
+import './styles/newIssue.css'
+import './styles/csvButton.css'
+import './styles/issuePane.css'
 
 const kb = store
 
@@ -21,7 +27,8 @@ const kb = store
 // const TRACKER_ICON = UI.icons.iconBase + 'noun_list_638112'
 // const TASK_ICON = UI.icons.iconBase + 'noun_17020.svg'
 
-const OVERFLOW_STYLE = 'position: fixed; z-index: 100; top: 1.51em; right: 2em; left: 2em; bottom:1.5em; border: 0.1em grey; overflow: scroll;'
+const OVERFLOW_CLASS = 'trackerIssuePaneOverflow'
+
 export default {
   icon: icons.iconBase + 'noun_122196.svg', // was: js/panes/issue/tbl-bug-22.png
   // noun_list_638112 is a checklist document
@@ -100,7 +107,7 @@ export default {
     } catch (err) {
       return widgets.complain(context, 'Error writing tracker state file: ' + err)
     }
-*/
+  */
     const dom = context.dom
     const div = options.div
 
@@ -180,6 +187,7 @@ export default {
 
       // These are states we will show by default: the open issues.
       const stateArray = kb.any(klass, ns.owl('disjointUnionOf'))
+
       if (!stateArray) {
         return complain(`Configuration error: state ${states} does not have substates`)
       }
@@ -221,6 +229,7 @@ export default {
       }
       // const columnValues = states // @@ optionally selected states would work
       const boardDiv = board(dom, columnValues, localRenderIssueCard, options)
+      boardDiv.classList.add('trackerBoard')
       return boardDiv
     }
 
@@ -316,6 +325,7 @@ export default {
       })
       const stateStore = kb.any(subject, ns.wf('stateStore'))
       tableDiv.appendChild(tableRefreshButton(stateStore, tableDiv))
+      tableDiv.classList.add('trackerBoardTable')
       return tableDiv
     }
 
@@ -335,6 +345,7 @@ export default {
       const issuePane = context.session.paneRegistry.byName('issue')
       const relevantPanes = [issuePane]
       create.newThingUI(creationContext, context, relevantPanes) // Have to pass panes down  newUI
+      creationDiv.classList.add('trackerCreationControlContainer')
       return creationDiv
     }
 
@@ -389,7 +400,7 @@ export default {
         } else if (object.sameTerm(instancesView)) {
           ele.appendChild(renderInstances(ns.wf('Tracker')))
         } else if ((kb.holds(tracker, ns.wf('issueCategory'), object)) ||
-                   (kb.holds(tracker, ns.wf('issueClass'), object))) {
+                    (kb.holds(tracker, ns.wf('issueClass'), object))) {
           ele.appendChild(renderBoard(tracker, object))
         } else {
           throw new Error('Unexpected tab type: ' + object)
@@ -471,14 +482,16 @@ export default {
       const newIssueButton = dom.createElement('button')
       const container = dom.createElement('div')
       newIssueButton.setAttribute('type', 'button')
-      newIssueButton.setAttribute('style', 'padding: 0.3em; font-size: 100%; margin: 0.5em;')
+      newIssueButton.classList.add('trackerIssuePaneNewIssueButton')
+      container.classList.add('trackerIssuePaneNewIssueButtonContainer')
       container.appendChild(newIssueButton)
       paneDiv.appendChild(container)
       const img = dom.createElement('img')
+      img.classList.add('trackerIssuePaneNewIssueButtonImage')
       img.setAttribute('src', icons.iconBase + 'noun_19460_green.svg')
-      img.setAttribute('style', 'width: 1em; height: 1em; margin: 0.2em;')
       newIssueButton.appendChild(img)
       const span = dom.createElement('span')
+      span.classList.add('trackerIssuePaneNewIssueButtonText')
       span.innerHTML = 'New ' + classLabel
       newIssueButton.appendChild(span)
       newIssueButton.addEventListener(
@@ -556,8 +569,8 @@ export default {
 
     let loginOutButton
     const overlay = paneDiv.appendChild(dom.createElement('div'))
+    overlay.classList.add(OVERFLOW_CLASS)
     context.overlay = overlay
-    overlay.style = OVERFLOW_STYLE
     overlay.style.visibility = 'hidden'
 
     authn.checkUser().then(webId => {
@@ -579,7 +592,7 @@ export default {
         }
       })
 
-      loginOutButton.setAttribute('style', 'margin: 0.5em 1em;')
+      loginOutButton.classList.add('trackerIssuePaneLoginButton')
       paneDiv.appendChild(loginOutButton)
       if (!context.statusArea) {
         context.statusArea = paneDiv.appendChild(dom.createElement('div'))
@@ -589,5 +602,3 @@ export default {
     return paneDiv
   }
 }
-
-// ends

@@ -1,56 +1,99 @@
-import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import path from 'path'
+import { moduleRules } from './webpack.module.rules.mjs'
+import { createRequire } from 'module'
+import TerserPlugin from 'terser-webpack-plugin'
+import CopyPlugin from 'copy-webpack-plugin'
 
-export default [
-  {
-    mode: 'production',
-    entry: {
-      board: './src/board.js',
-      csvButton: './src/csvButton.js',
-      issue: './src/issue.js',
-      issuePane: './src/issuePane.js',
-      newIssue: './src/newIssue.js',
-      newTracker: './src/newTracker.js',
+const require = createRequire(import.meta.url)
+
+const common = {
+  mode: 'production',
+  entry: './src/index.js',
+  module: {
+    rules: moduleRules,
+  },
+  externals: {
+    'solid-ui': 'UI',
+    'solid-logic': 'SolidLogic',
+    rdflib: '$rdf',
+  },
+  resolve: {
+    extensions: ['.js', '.ts'],
+    fallback: {
+      path: require.resolve('path-browserify')
     },
-    output: {
-      path: path.resolve(process.cwd(), 'dist'),
-      filename: '[name].js',
-      library: {
-        name: '[name]',
-        type: 'umd'
-      },
-      globalObject: 'this',
-      clean: false
+  },
+  devtool: 'source-map',
+}
+
+const normalConfig = {
+  ...common,
+  mode: 'production',
+  output: {
+    path: path.resolve(process.cwd(), 'lib'),
+    filename: 'issue-pane.js',
+    library: {
+      type: 'umd',
+      name: 'IssuePane',
+      export: 'default',
     },
-    plugins: [
-      new NodePolyfillPlugin({
-        excludeAliases: ['console', 'process']
+    globalObject: 'this',
+    clean: true,
+  },
+  plugins: [
+    ...(common.plugins || []),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve('src/styles'),
+          to: path.resolve('lib/styles'),
+        },
+      ],
+    }),
+  ],
+  optimization: {
+    minimize: false,
+  }
+}
+
+const minConfig = {
+  ...common,
+  mode: 'production',
+  output: {
+    path: path.resolve(process.cwd(), 'lib'),
+    filename: 'issue-pane.min.js',
+    library: {
+      type: 'umd',
+      name: 'IssuePane',
+      export: 'default',
+    },
+    globalObject: 'this',
+    clean: false,
+  },
+  plugins: [
+    ...(common.plugins || []),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve('src/styles'),
+          to: path.resolve('lib/styles'),
+        },
+      ],
+    }),
+  ],
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
       })
     ],
-    module: {
-      rules: [
-        {
-          test: /\.(js|ts)$/,
-          exclude: /node_modules/,
-          use: ['babel-loader'],
-        },
+  }
+}
 
-        {
-          test: /\.ttl$/, // Target text  files
-          type: 'asset/source', // Load the file's content as a string
-        },
-
-      ],
-    },
-    externals: {
-      'solid-ui': 'UI',
-      'solid-logic': 'SolidLogic',
-      rdflib: '$rdf',
-    },
-    resolve: {
-      extensions: ['.js', '.ts']
-    },
-
-    devtool: false,
-  },
-]
+export default [normalConfig, minConfig]
