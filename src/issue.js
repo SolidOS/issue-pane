@@ -5,6 +5,7 @@ import { authn, store } from 'solid-logic'
 import { newIssueForm } from './newIssue'
 import * as $rdf from 'rdflib'
 import './styles/issue.css'
+import './styles/utilites.css'
 
 const kb = store
 

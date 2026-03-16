@@ -1,7 +1,7 @@
 .trackerBoard {
   width: fit-content;
   border-collapse: collapse;
-  margin: 1em;
+  margin: var(--spacing-md, 1em);
 }
 
 .trackerBoardTable {

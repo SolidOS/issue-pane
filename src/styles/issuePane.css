@@ -6,8 +6,8 @@
   padding: 0.1em 0.7em 0.1em 0.1em;
 }
 .trackerIssuePaneTable img {
-  width: 1.5em;
-  height: 1.5em;
+  width: var(--icon-sm, 1.5em);
+  height: var(--icon-sm, 1.5em);
   border-radius: 50%;
 }
 
@@ -24,21 +24,21 @@
   align-items: center;
   justify-content: flex-start;
   border: 1px solid grey;
-  border-radius: var(--border-radius-base);
+  border-radius: var(--border-radius-base, 0.5em);
   cursor: pointer;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-sm, 0.75em);
   white-space: nowrap;
   text-align: left;
-  padding: var(--spacing-sm);
+  padding: var(--spacing-sm, 0.75em);
   font-size: 100%;
-  margin: var(--spacing-sm);
+  margin: var(--spacing-sm, 0.75em);
 }
 
 .trackerIssuePaneNewIssueButton > .trackerIssuePaneNewIssueButtonImage {
   order: 1;
   display: inline-block;
-  width: 1em;
-  height: 1em;
+  width: var(--icon-xxs, 1em);
+  height: var(--icon-xxs, 1em);
   margin: 0.2em;
   vertical-align: middle;
 }
@@ -54,10 +54,10 @@
   position: fixed;
   z-index: 100;
   top: 1.51em;
-  right: 2em;
-  left: 2em;
-  bottom: 1.5em;
-  border: 0.1em grey solid;
+  right: var(--spacing-xl, 2em);
+  left: var(--spacing-xl, 2em);
+  bottom: var(--spacing-lg, 1.5em);
+  border: 0.1em  solid grey;
   overflow: scroll;
 }
 .trackerIssuePaneLoginButton {
