@@ -1,3 +1,8 @@
+/* CSS for the issue pane component was influenced by generative ai
+using the GPT-5.3-Codex model in Github. The prompts used are below:  
+- the name of the file index.ttl in a new issue was over to the right now it's on the left can you fix that?
+- I want this .trackerIssuePaneNewIssueButtonText to sit to the right side of the plus icon on the newIssueButton
+- on newIssue i need the close button to be at the top right please. */
 .trackerIssuePaneTable {
   width: fit-content;
   border-collapse: collapse;
