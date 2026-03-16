@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url)
 
 const common = {
   mode: 'production',
-  entry: './src/index.js',
+  entry: './src/issuePane.js',
   module: {
     rules: moduleRules,
   },
