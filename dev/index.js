@@ -1,5 +1,5 @@
 import { sym } from 'rdflib'
-import pane from '../src/index'
+import pane from '../src/issuePane'
 import './dev-global.css' // Import after src to override component styles
 import { context, fetcher } from './context'
 import { authn, authSession } from 'solid-logic'
