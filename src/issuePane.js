@@ -12,8 +12,10 @@ import { renderIssue, renderIssueCard, getState, exposeOverlay } from './issue'
 import { newTrackerButton } from './newTracker'
 import { newIssueForm } from './newIssue'
 import { csvButton } from './csvButton'
+import { complain } from './localUtils'
 import { trackerSettingsFormText } from './ontology/trackerSettingsForm.ttl'
 import * as $rdf from 'rdflib'
+import * as debug from './debug'
 import './styles/issue.css'
 import './styles/board.css'
 import './styles/newTracker.css'
@@ -100,7 +102,8 @@ export default {
     try {
       await updateMany([], ins)
     } catch (err) {
-      return widgets.complain(context, 'Error writing tracker configuration: ' + err)
+      debug.error('Error writing tracker configuration: ' + err)
+      return complain(options.div, context.dom, 'Error creating the tracker configuration')
     }
     /*
     try {
@@ -130,14 +133,30 @@ export default {
     context.paneDiv = paneDiv
     paneDiv.setAttribute('class', 'issuePane')
 
-    function complain (message) {
-      console.warn(message)
-      paneDiv.appendChild(widgets.errorMessageBlock(dom, message))
+    const detailsSection = dom.createElement('section')
+    detailsSection.classList.add('detailSection')
+    detailsSection.setAttribute('role', 'region')
+    detailsSection.setAttribute('aria-label', 'Details section')
+    detailsSection.hidden = true
+
+    const detailsSectionContent = dom.createElement('div')
+    detailsSectionContent.classList.add('detailsSectionContent')
+    detailsSectionContent.setAttribute('aria-live', 'polite')
+    detailsSection.appendChild(detailsSectionContent)
+
+    function showDetailsSection () {
+      detailsSection.hidden = false
+      paneDiv.appendChild(detailsSection) // keep details at the bottom
+    }
+
+    function complainInDetails (message) {
+      showDetailsSection()
+      complain(detailsSectionContent, dom, message)
     }
 
     function complainIfBad (ok, message) {
       if (!ok) {
-        complain(message)
+        complainInDetails(message)
       }
     }
 
@@ -149,8 +168,14 @@ export default {
     async function fixSubClasses (kb, tracker) { // 20220228
       async function checkOneSuperclass (klass) {
         const collection = kb.any(klass, ns.owl('disjointUnionOf'), null, doc)
-        if (!collection) throw new Error(`Classification ${klass} has no disjointUnionOf`)
-        if (!collection.elements) throw new Error(`Classification ${klass} has no array`)
+        if (!collection) {
+          debug.error(`Classification ${klass} has no disjointUnionOf`)
+          throw new Error(`Tracker configuration error: ${utils.label(klass)} is missing its allowed state list (owl:disjointUnionOf)`)
+        }
+        if (!collection.elements) {
+          debug.error(`Classification ${klass} has no array`)
+          throw new Error(`Tracker configuration error: ${utils.label(klass)} has no array`)
+        }
         const needed = new Set(collection.elements.map(x => x.uri))
         const existing = new Set(kb.each(null, ns.rdfs('subClassOf'), klass, doc).map(x => x.uri))
 
@@ -166,13 +191,18 @@ export default {
       const cats = kb.each(tracker, ns.wf('issueCategory')).concat([states])
       let damage = [] // to make totally functionaly  need to deal with map over async.
       for (const klass of cats) {
-        damage = damage.concat(await checkOneSuperclass(klass))
+        try {
+          damage = damage.concat(await checkOneSuperclass(klass))
+        } catch (err) {          
+          debug.error('Error checking subclasses of ' + utils.label(klass) + ': ' + err)
+          complainInDetails('Tracker settings need an update for "' + utils.label(klass) + '". Open Settings and make sure this status/category has a list of allowed values (for example Open, In Progress, Closed), then save and refresh.')
+        }
+        
       }
       if (damage.length) {
         const insertables = damage.filter(fix => fix.action === 'insert').map(fix => fix.st)
         const deletables = damage.filter(fix => fix.action === 'delete').map(fix => fix.st)
-        // alert(`Internal error: s${damage} subclasses inconsistences!`)
-        console.log('Damage:', damage)
+        debug.warn('Damage:', damage)
         if (confirm(`Fix ${damage} inconsistent subclasses in tracker config?`)) {
           await kb.updater.update(deletables, insertables)
         }
@@ -190,7 +220,8 @@ export default {
       const stateArray = kb.any(klass, ns.owl('disjointUnionOf'))
 
       if (!stateArray) {
-        return complain(`Configuration error: state ${states} does not have substates`)
+        debug.error(`Configuration error: state ${states} does not have a disjointUnionOf`)
+        return complainInDetails(`Configuration error: state ${states} does not have substates`)
       }
       let columnValues = stateArray.elements
       if (doingStates && columnValues.length > 2 // and there are more than two
@@ -212,7 +243,8 @@ export default {
             [$rdf.st(issue, ns.rdf('type'), currentState, stateStore)],
             [$rdf.st(issue, ns.rdf('type'), newState, stateStore)])
         } catch (err) {
-          widgets.complain(context, 'Unable to change issue state: ' + err)
+          debug.error('Unable to change issue state: ' + err)
+          complainInDetails('Unable to change issue state')
         }
         boardDiv.refresh() // reorganize board to match the new reality
       }
@@ -433,18 +465,20 @@ export default {
         // eslint-disable-next-line no-unused-vars
         const _xhrs = await context.session.store.fetcher.load(tracker.doc())
       } catch (err) {
-        const msg = 'Failed to load tracker config ' + tracker.doc() + ': ' + err
-        return complain(msg)
+        debug.error(`Failed to load tracker config: ${tracker.doc()}: ${err}`)
+        return complainInDetails('Failed to load tracker config')
       }
 
       const stateStore = kb.any(tracker, ns.wf('stateStore'))
       if (!stateStore) {
-        return complain('Tracker has no state store: ' + tracker)
+        debug.error('Tracker has no state store: ' + tracker)
+        return complainInDetails('Tracker has no state store: ' + tracker)
       }
       try {
         await context.session.store.fetcher.load(subject)
       } catch (err) {
-        return complain('Failed to load issue state ' + stateStore + ': ' + err)
+        debug.error(`Failed to load issue state: ${stateStore}: ${err}`)
+        return complainInDetails('Failed to load issue state')
       }
       paneDiv.appendChild(renderIssue(subject, context))
       updater.addDownstreamChangeListener(stateStore, function () {
@@ -463,13 +497,22 @@ export default {
       try {
         await fixSubClasses(kb, tracker)
       } catch (err) {
-        console.log('@@@ Error fixing subclasses in config: ' + err)
+        debug.error('Error fixing subclasses in config: ' + err)
+        complainInDetails('Error fixing subclasses in config')
       }
 
       const states = kb.any(subject, ns.wf('issueClass'))
-      if (!states) throw new Error('This tracker has no issueClass')
+      if (!states) {
+        debug.error('This tracker has no issueClass')
+        complainInDetails('Tracker settings are incomplete: missing Issue Class. Open Settings, choose an Issue Class, then refresh.')
+        return
+      }
       const stateStore = kb.any(subject, ns.wf('stateStore'))
-      if (!stateStore) throw new Error('This tracker has no stateStore')
+      if (!stateStore) {
+        debug.error('This tracker has no stateStore')
+        complainInDetails('Tracker settings are incomplete: missing State Store. Open Settings, save the tracker state settings, then refresh.')
+        return
+      }
 
       // const me = await authn.currentUser()
 
@@ -517,13 +560,15 @@ export default {
           if (tableDiv.refresh) {
             // Refresh function
           } else {
-            console.log('No table refresh function?!')
+            debug.warn('No refresh function on the tableDiv?!')
+            complainInDetails('There is no way to refresh the table view. Please refresh the whole page to see updates to the issues.')
           }
           paneDiv.appendChild(newTrackerButton(subject, context))
           updater.addDownstreamChangeListener(stateStore, tableDiv.refresh) // Live update
         })
         .catch(function (err) {
-          return console.log('Cannot load state store: ' + err)
+          debug.error('Cannot load state store: ' + err)
+          complainInDetails('Cannot load state store')
         })
       // end of Tracker instance
     } // render tracker
@@ -556,16 +601,27 @@ export default {
       t['http://www.w3.org/2005/01/wf/flow#Task'] ||
       kb.holds(subject, ns.wf('tracker'))
     ) {
-      renderSingleIssue().then(() => console.log('Single issue rendered'))
+      renderSingleIssue()
+        .then(() => debug.log('Single issue rendered'))
+        .catch(err => {
+          debug.error('Single issue render failed: ' + err)
+          complainInDetails('Could not load this issue view. Please refresh, and if this continues, check tracker settings.')
+        })
     } else if (t['http://www.w3.org/2005/01/wf/flow#Tracker']) {
       //          Render a Tracker instance
-      renderTracker().then(() => console.log('Tracker rendered'))
+      renderTracker()
+        .then(() => debug.log('Tracker rendered'))
+        .catch(err => {
+          debug.error('Tracker render failed: ' + err)
+          complainInDetails('Could not load this tracker. Open Settings to verify Issue Class, then refresh.')
+        })
     } else {
-      console.log(
+      debug.error(
         'Error: Issue pane: No evidence that ' +
           subject +
           ' is either a bug or a tracker.'
       )
+      complainInDetails('This item is not recognized as an issue or tracker.')
     }
 
     let loginOutButton
@@ -575,7 +631,6 @@ export default {
 
     authn.checkUser().then(webId => {
       if (webId) {
-        console.log('Web ID set already: ' + webId)
         context.me = webId
         // @@ enable things
         return
@@ -584,7 +639,6 @@ export default {
       loginOutButton = login.loginStatusBox(dom, webIdUri => {
         if (webIdUri) {
           context.me = kb.sym(webIdUri)
-          console.log('Web ID set from login button: ' + webIdUri)
           paneDiv.removeChild(loginOutButton)
           // enable things
         } else {
@@ -593,11 +647,13 @@ export default {
       })
 
       loginOutButton.classList.add('trackerIssuePaneLoginButton')
-      paneDiv.appendChild(loginOutButton)
+      paneDiv.insertBefore(loginOutButton, detailsSection)
       if (!context.statusArea) {
-        context.statusArea = paneDiv.appendChild(dom.createElement('div'))
+        context.statusArea = paneDiv.insertBefore(dom.createElement('div'), detailsSection)
       }
     })
+
+    paneDiv.appendChild(detailsSection)
 
     return paneDiv
   }

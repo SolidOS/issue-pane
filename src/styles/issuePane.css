@@ -45,3 +45,15 @@ using the GPT-5.3-Codex model in GitHub. The prompts used are below:
 .trackerIssuePaneLoginButton {
   margin: var(--spacing-sm) var(--spacing-md);
 }
+
+.detailSection {
+  margin: var(--spacing-sm, 0.75em);
+  padding: var(--spacing-sm, 0.75em);
+  border-top: 1px solid #d0d0d0;
+}
+
+.detailsSectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 0.75em);
+}
