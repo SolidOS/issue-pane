@@ -21,6 +21,7 @@ export function board (dom, columnValues, renderItem, options) {
   const table = board.appendChild(dom.createElement('table'))
   table.classList.add('trackerBoardTable')
 
+  // build table header and columns
   const headerRow = table.appendChild(dom.createElement('tr'))
   headerRow.classList.add('trackerBoardHeader')
   const mainRow = table.appendChild(dom.createElement('tr'))
@@ -37,7 +38,6 @@ export function board (dom, columnValues, renderItem, options) {
 
     function droppedURIHandler (uris) {
       uris.forEach(function (u) {
-        console.log('Dropped on column: ' + u)
         const item = store.sym(u)
         options.columnDropHandler(item, x)
       })
