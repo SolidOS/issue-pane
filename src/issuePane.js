@@ -138,6 +138,7 @@ export default {
     detailsSection.setAttribute('role', 'region')
     detailsSection.setAttribute('aria-label', 'Details section')
     detailsSection.hidden = true
+    paneDiv.appendChild(detailsSection)
 
     const detailsSectionContent = dom.createElement('div')
     detailsSectionContent.classList.add('detailsSectionContent')
@@ -652,8 +653,6 @@ export default {
         context.statusArea = paneDiv.insertBefore(dom.createElement('div'), detailsSection)
       }
     })
-
-    paneDiv.appendChild(detailsSection)
 
     return paneDiv
   }
