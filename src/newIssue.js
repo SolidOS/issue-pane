@@ -2,6 +2,7 @@
 //
 import { ns, utils } from 'solid-ui'
 import * as $rdf from 'rdflib'
+import { alertDialog } from './localUtils'
 import './styles/newIssue.css'
 
 export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue, onCancel) {
@@ -78,7 +79,10 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue, onCanc
 
     const sendComplete = function (uri, success, body) {
       if (!success) {
-        console.log('Error: can\'t save new issue:' + body)
+        titlefield.classList.remove('pendingedit')
+        titlefield.disabled = false
+        titlefield.focus()
+        alertDialog('Could not save the new issue. Please try again.', 'Save issue failed', dom)
       } else {
         form.parentNode.removeChild(form)
         showNewIssue(issue)
