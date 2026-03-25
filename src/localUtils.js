@@ -1,5 +1,8 @@
-function openModal ({ title, message, buttons }) {
+import { widgets } from "solid-ui"
+
+function openModal ({ title, message, buttons, dom }) {
   const overlay = ensureModalOverlay()
+  const modalDom = dom || overlay.ownerDocument
   previousFocus = document.activeElement
   hideSiblings(true)
   overlay.classList.remove('hidden')
@@ -19,7 +22,7 @@ function openModal ({ title, message, buttons }) {
 
   return new Promise(resolve => {
     buttons.forEach(btn => {
-      const b = dom.createElement('button')
+      const b = modalDom.createElement('button')
       b.setAttribute('type', 'button')
       b.textContent = btn.label
       if (btn.primary) b.classList.add('btn-primary')
@@ -36,14 +39,23 @@ function openModal ({ title, message, buttons }) {
   })
 }
 
-export function alertDialog (message, title = 'Information') {
+function closeModal (result) {
+  if (modalOverlay) {
+    modalOverlay.classList.add('hidden')
+    hideSiblings(false)
+    if (previousFocus && previousFocus.focus) previousFocus.focus()
+  }
+}
+
+export function alertDialog (message, title = 'Information', dom = null) {
   return openModal({
     title,
     message,
-    buttons: [{ label: 'OK', value: true, primary: true }]
+    buttons: [{ label: 'OK', value: true, primary: true }],
+    dom
   })
 }
 
 export function complain (div, d, message) {
-  div.appendChild(UI.widgets.errorMessageBlock(d, message, 'pink'))
+  div.appendChild(widgets.errorMessageBlock(d, message, 'pink'))
 }
