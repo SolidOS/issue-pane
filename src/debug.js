@@ -1,3 +1,4 @@
+/* Generative AI - Model: GPT-5.3-Codex used for configuration logic */
 const LEVELS = {
   trace: 10,
   log: 20,
