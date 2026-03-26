@@ -145,6 +145,7 @@ export default {
     detailsSectionContent.setAttribute('aria-live', 'polite')
     detailsSection.appendChild(detailsSectionContent)
 
+    /* Generative AI - Model: GPT-5.3-Codex see ReadMe for details */
     function placeDetailsSection () {
       const newTrackerControl = paneDiv.querySelector('.trackerNewTrackerButton')
       if (newTrackerControl && newTrackerControl.parentNode === paneDiv) {
