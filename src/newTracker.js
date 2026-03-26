@@ -2,7 +2,7 @@ import * as UI from 'solid-ui'
 import { store } from 'solid-logic'
 import './styles/newTracker.css'
 import { alertDialog } from './localUtils'
-import debug from './debug'
+import * as debug from './debug'
 
 const ns = UI.ns
 const updater = store.updater

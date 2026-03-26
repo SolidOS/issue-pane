@@ -7,7 +7,7 @@
 import { icons, ns, utils, widgets } from 'solid-ui'
 import { store } from 'solid-logic'
 import { alertDialog } from './localUtils'
-import debug from './debug'
+import * as debug from './debug'
 
 export function quoteString (value) {
   // https://www.rfc-editor.org/rfc/rfc4180

@@ -1,5 +1,5 @@
 import { widgets } from 'solid-ui'
-import '../styles/localUtils.css'
+import './styles/localUtils.css'
 
 let modalOverlay = null
 let previousFocus = null

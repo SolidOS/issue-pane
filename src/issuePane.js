@@ -155,6 +155,26 @@ export default {
       complain(detailsSectionContent, dom, message)
     }
 
+    function shouldInjectDetailsTestErrors () {
+      const view = dom.defaultView
+      if (!view || !view.location) return false
+      try {
+        const params = new view.URLSearchParams(view.location.search || '')
+        return params.get('testDetailsSectionErrors') === '1'
+      } catch (_e) {
+        return false
+      }
+    }
+
+    function injectDetailsTestErrorsIfEnabled () {
+      if (!shouldInjectDetailsTestErrors()) return
+      complainInDetails('Test error: unable to load optional tracker metadata.')
+      complainInDetails('Test warning: one issue is missing a category value.')
+      complainInDetails('Test info: this is a sample detailsSection message for visual QA.')
+    }
+
+    injectDetailsTestErrorsIfEnabled()
+
     function complainIfBad (ok, message) {
       if (!ok) {
         complainInDetails(message)
