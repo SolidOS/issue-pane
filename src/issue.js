@@ -4,6 +4,8 @@ import { icons, messageArea, ns, utils, widgets } from 'solid-ui'
 import { authn, store } from 'solid-logic'
 import { newIssueForm } from './newIssue'
 import * as $rdf from 'rdflib'
+import debug from './debug'
+import { alertDialog, complain } from './localUtils'
 import './styles/issue.css'
 import './styles/utilities.css'
 
@@ -14,11 +16,6 @@ const SET_MODIFIED_DATES = false
 export const TASK_ICON = icons.iconBase + 'noun_17020_gray-tick.svg'
 export const OPEN_TASK_ICON = icons.iconBase + 'noun_17020_sans-tick.svg'
 export const CLOSED_TASK_ICON = icons.iconBase + 'noun_17020.svg'
-
-function complain (message, context) {
-  console.warn(message)
-  context.paneDiv.appendChild(widgets.errorMessageBlock(context.dom, message))
-}
 
 export function isOpen (issue) {
   const types = kb.findTypeURIs(issue)
@@ -83,12 +80,12 @@ export function renderIssueCard (issue, context) {
       try {
         await kb.updater.update(kb.connectedStatements(issue))
       } catch (err) {
-        complain(`Unable to delete issue: ${err}`, context)
+        debug.error('Unable to delete issue: ' + err)
+        alertDialog('Unable to delete issue', 'Delete failed', dom)
+        return
       }
-      console.log('User deleted issue ' + issue)
       card.parentNode.removeChild(card) // refresh doesn't work yet because it is not passed though tabs so short cut
       widgets.refreshTree(context.paneDiv) // Should delete the card if nec when tabs pass it though
-      // complain('DELETED OK', context)
     })
     buttonsCell.appendChild(deleteButton)
   }
@@ -123,6 +120,8 @@ function renderSpacer (dom, backgroundColor) {
 }
 
 export function renderIssue (issue, context) {
+  const dom = context.dom
+
   // Don't bother changing the last modified dates of things: save time
   function setModifiedDate (subj, kb, doc) {
     if (SET_MODIFIED_DATES) {
@@ -150,17 +149,14 @@ export function renderIssue (issue, context) {
     // http://www.w3schools.com/jsref/jsref_obj_date.asp
   }
 
-  function complain (message) {
-    console.warn(message)
-    issueDiv.appendChild(widgets.errorMessageBlock(dom, message))
+  function complainInIssue (message) {
+    complain(issueDiv, dom, message)
   }
 
   function complainIfBad (ok, body) {
     if (!ok) {
-      complain(
-        'Sorry, failed to save your change:\n' + body,
-        'background-color: pink;', context
-      )
+      debug.error('Failed to save change:\n' + body)
+      complainInIssue('Failed to save change')
     }
   }
   function getOption (tracker, option) {
@@ -175,8 +171,6 @@ export function renderIssue (issue, context) {
   }
 
   /// ////////////// Body of renderIssue
-
-  const dom = context.dom
 
   const tracker = kb.the(issue, ns.wf('tracker'), null, issue.doc())
   if (!tracker) throw new Error('No tracker')
@@ -198,7 +192,15 @@ export function renderIssue (issue, context) {
   widgets.makeDraggable(iconButton, issue) // Drag me wherever you need to do stuff with this issue
 
   const states = kb.any(tracker, ns.wf('issueClass'))
-  if (!states) { throw new Error('This tracker ' + tracker + ' has no issueClass') }
+  if (!states) { 
+    debug.error('Tracker ' + utils.label(tracker) + ' has no issueClass')
+    alertDialog('Tracker ' + utils.label(tracker) + ' has no issueClass. Please open Settings and make sure there is a state class with allowed values (for example Open, In Progress, Closed), then save and refresh.', 'Tracker configuration error', dom)
+    const p = dom.createElement('p')
+    p.textContent = 'Sorry, failed to save your change.'
+    issueDiv.appendChild(p)
+    return issueDiv
+  }
+
   const select = widgets.makeSelectForCategory(
     dom,
     kb,
@@ -210,7 +212,8 @@ export function renderIssue (issue, context) {
         setModifiedDate(store, kb, store)
         widgets.refreshTree(issueDiv)
       } else {
-        console.log('Failed to change state:\n' + body)
+        debug.warn('Failed to change state:\n' + body)
+        alertDialog('Failed to change state', 'State Update Failed', dom)
       }
     }
   )
@@ -230,7 +233,8 @@ export function renderIssue (issue, context) {
             setModifiedDate(store, kb, store)
             widgets.refreshTree(issueDiv)
           } else {
-            console.log('Failed to change category:\n' + body)
+            debug.warn('Failed to change category:\n' + body)
+            alertDialog('Failed to change category', 'Category Update Failed', dom)
           }
         }
       )
@@ -289,13 +293,14 @@ export function renderIssue (issue, context) {
 
   const assignments = kb.statementsMatching(issue, ns.wf('assignee'))
   if (assignments.length > 1) {
-    say('Weird, was assigned to more than one person. Fixing ..')
+    alertDialog('Weird, was assigned to more than one person. Fixing ..', 'Assignment Error', dom)
     const deletions = assignments.slice(1)
     kb.updater.update(deletions, [], function (uri, ok, body) {
       if (ok) {
-        say('Now fixed.')
+        alertDialog('Now fixed.', 'Assignment Fixed', dom)
       } else {
-        complain('Fixed failed: ' + body, context)
+        debug.error(`Failed to fix multiple assignees:\n${body}`)
+        alertDialog('Failed to fix multiple assignees', 'Assignment Fix Failed', dom)
       }
     })
   }
@@ -348,7 +353,10 @@ export function renderIssue (issue, context) {
           store,
           function (ok, body) {
             if (ok) setModifiedDate(store, kb, store)
-            else console.log('Failed to change assignee:\n' + body)
+            else {
+              debug.error('Failed to change assignee:\n' + body)
+              alertDialog('Failed to change assignee', 'Assignee Update Failed', dom)
+            }
           }
         )
       )
@@ -477,10 +485,11 @@ export function renderIssue (issue, context) {
     try {
       await kb.updater.update(kb.connectedStatements(issue))
     } catch (err) {
-      complain(`Unable to delete issue: ${err}`, context)
+      debug.error('Unable to delete issue: ' + err)
+      alertDialog('Unable to delete issue', 'Issue Deletion Failed', dom)
     }
     // @@ refreshTree
-    complain('DELETED OK', context)
+    alertDialog('Your issue has been deleted', 'Issue Deleted', dom)
     // This code was generated by Generative AI (GPT-5.3-Codex in GitHub Copilot) based on the following prompt:
     // Could you move the color changes after // @@refreshTree into css?
     issueDiv.classList.add('trackerIssueDeleted')
