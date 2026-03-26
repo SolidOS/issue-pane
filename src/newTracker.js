@@ -2,6 +2,8 @@ import * as UI from 'solid-ui'
 import * as $rdf from 'rdflib'
 import { store } from 'solid-logic'
 import './styles/newTracker.css'
+import { alertDialog } from './localUtils'
+import debug from './debug'
 
 const ns = UI.ns
 const updater = store.updater
@@ -34,16 +36,13 @@ export function newTrackerButton (thisTracker, context) {
     }
 
     const appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
-    // console.log("Ready to make new instance at "+ws)
     const sp = UI.ns.space
     const kb = context.session.store
 
     if (!base) {
       base = kb.any(ws, sp('uriPrefix')).value
       if (base.slice(-1) !== '/') {
-        $rdf.log.error(
-          appPathSegment + ': No / at end of uriPrefix ' + base
-        )
+        debug.error(`${appPathSegment}: No / at end of uriPrefix ${base}`)
         base = base + '/'
       }
       base += appPathSegment + '/' + timestring() + '/' // unique id
@@ -84,8 +83,6 @@ export function newTrackerButton (thisTracker, context) {
 
     kb.add(newTracker, UI.ns.space('inspiration'), thisTracker, there)
 
-    // $rdf.log.debug("\n Ready to put " + kb.statementsMatching(undefined, undefined, undefined, there)); //@@
-
     updater.put(
       there,
       kb.statementsMatching(undefined, undefined, undefined, there),
@@ -98,24 +95,15 @@ export function newTrackerButton (thisTracker, context) {
             message
           ) {
             if (ok) {
-              console.info(
-                'Ok The tracker created OK at: ' +
-                      newTracker.uri +
-                      '\nMake a note of it, bookmark it. '
-              )
+              debug.log(`Ok The tracker created OK at: ${newTracker.uri}\nMake a note of it, bookmark it.`)
             } else {
-              console.log(
-                'FAILED to set up new store at: ' +
-                      newStore.uri +
-                      ' : ' +
-                      message
-              )
+              debug.error(`Failed to set up new store at: ${newStore.uri} : ${message}`)
+              alertDialog(`Failed to set up new store at: ${newStore.uri}`)
             }
           })
         } else {
-          console.log(
-            'FAILED to save new tracker at: ' + there.uri + ' : ' + message
-          )
+          debug.error(`Failed to save new tracker at: ${there.uri} : ${message}`)
+          alertDialog(`Failed to save new tracker at: ${there.uri}`)
         }
       }
     )
