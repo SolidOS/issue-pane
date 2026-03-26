@@ -19,7 +19,7 @@ export function quoteString (value) {
   const check = quoted.slice(1, -1).replaceAll('""', '')
   if (check.includes('"')) {
     debug.error(`quoteString failed to quote properly, value: ${value}, quoted: ${quoted}, check: ${check}`)
-    throw new Error('CSV inconsistecy')
+    throw new Error('CSV inconsistency')
   }
   return quoted
 }
