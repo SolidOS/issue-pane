@@ -194,11 +194,10 @@ export default {
       for (const klass of cats) {
         try {
           damage = damage.concat(await checkOneSuperclass(klass))
-        } catch (err) {          
+        } catch (err) {
           debug.error('Error checking subclasses of ' + utils.label(klass) + ': ' + err)
           complainInDetails('Tracker settings need an update for "' + utils.label(klass) + '". Open Settings and make sure this status/category has a list of allowed values (for example Open, In Progress, Closed), then save and refresh.')
         }
-        
       }
       if (damage.length) {
         const insertables = damage.filter(fix => fix.action === 'insert').map(fix => fix.st)
