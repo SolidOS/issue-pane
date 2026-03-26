@@ -1,7 +1,72 @@
-import { widgets } from "solid-ui"
+import { widgets } from 'solid-ui'
+import '../styles/localUtils.css'
+
+let modalOverlay = null
+let previousFocus = null
+
+function ensureModalOverlay (dom) {
+  // if we previously created an overlay but it was removed from the document
+  // (tests clear body), rebuild it.  Checking presence ensures our reference
+  // doesn't point at a detached element.
+  if (modalOverlay && document.body.contains(modalOverlay)) return modalOverlay
+  // otherwise drop stale reference and create a new element
+  modalOverlay = null
+  // overlay container
+  modalOverlay = dom.createElement('div')
+  modalOverlay.id = 'contacts-modal'
+  modalOverlay.className = 'focus-trap hidden'
+  modalOverlay.setAttribute('role', 'presentation')
+
+  modalOverlay.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
+      <h2 id="modal-title"></h2>
+      <div id="modal-desc"></div>
+      <div id="modal-buttons"></div>
+    </div>
+  `
+
+  document.body.appendChild(modalOverlay)
+
+  // keyboard handling (esc/tab)
+  modalOverlay.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      e.stopPropagation()
+      // simulate cancel if available
+      const cancelBtn = modalOverlay.querySelector('button[data-cancel]')
+      if (cancelBtn) cancelBtn.click()
+      else closeModal(false)
+    } else if (e.key === 'Tab') {
+      // simple focus trap: cycle through focusable elements inside overlay
+      const focusable = Array.from(modalOverlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.hasAttribute('disabled'))
+      if (focusable.length === 0) return
+      const idx = focusable.indexOf(document.activeElement)
+      if (e.shiftKey) {
+        if (idx === 0) {
+          focusable[focusable.length - 1].focus()
+          e.preventDefault()
+        }
+      } else {
+        if (idx === focusable.length - 1) {
+          focusable[0].focus()
+          e.preventDefault()
+        }
+      }
+    }
+  })
+
+  return modalOverlay
+}
+
+function hideSiblings (hide) {
+  const siblings = Array.from(document.body.children).filter(c => c !== modalOverlay)
+  siblings.forEach(el => {
+    if (hide) el.setAttribute('aria-hidden', 'true')
+    else el.removeAttribute('aria-hidden')
+  })
+}
 
 function openModal ({ title, message, buttons, dom }) {
-  const overlay = ensureModalOverlay()
+  const overlay = ensureModalOverlay(dom)
   const modalDom = dom || overlay.ownerDocument
   previousFocus = document.activeElement
   hideSiblings(true)
