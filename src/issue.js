@@ -81,7 +81,11 @@ export function renderIssueCard (issue, context) {
         await kb.updater.update(kb.connectedStatements(issue))
       } catch (err) {
         debug.error('Unable to delete issue: ' + err)
-        alertDialog('Unable to delete issue', 'Delete failed', dom)
+        alertDialog(
+          `Unable to delete issue.\n\nDetails: ${err?.message || String(err)}`,
+          'Delete failed',
+          dom
+        )
         return
       }
       card.parentNode.removeChild(card) // refresh doesn't work yet because it is not passed though tabs so short cut
@@ -134,15 +138,6 @@ export function renderIssue (issue, context) {
       kb.updater.update(deletions, insertions, function (_uri, _ok, _body) {})
     }
   }
-  /* no longer pass in style it is not used */
-  function say (message) {
-    const pre = dom.createElement('pre')
-    pre.classList.add('trackerIssueMessage')
-    issueDiv.appendChild(pre)
-    pre.appendChild(dom.createTextNode(message))
-    return pre
-  }
-
   function timestring () {
     const now = new Date()
     return '' + now.getTime()
@@ -192,7 +187,7 @@ export function renderIssue (issue, context) {
   widgets.makeDraggable(iconButton, issue) // Drag me wherever you need to do stuff with this issue
 
   const states = kb.any(tracker, ns.wf('issueClass'))
-  if (!states) { 
+  if (!states) {
     debug.error('Tracker ' + utils.label(tracker) + ' has no issueClass')
     alertDialog('Tracker ' + utils.label(tracker) + ' has no issueClass. Please open Settings and make sure there is a state class with allowed values (for example Open, In Progress, Closed), then save and refresh.', 'Tracker configuration error', dom)
     const p = dom.createElement('p')
@@ -213,7 +208,11 @@ export function renderIssue (issue, context) {
         widgets.refreshTree(issueDiv)
       } else {
         debug.warn('Failed to change state:\n' + body)
-        alertDialog('Failed to change state', 'State Update Failed', dom)
+        alertDialog(
+          `Failed to change state.\n\nDetails: ${body || 'No additional error details provided.'}`,
+          'State update failed',
+          dom
+        )
       }
     }
   )
@@ -234,7 +233,11 @@ export function renderIssue (issue, context) {
             widgets.refreshTree(issueDiv)
           } else {
             debug.warn('Failed to change category:\n' + body)
-            alertDialog('Failed to change category', 'Category Update Failed', dom)
+            alertDialog(
+              `Failed to change category.\n\nDetails: ${body || 'No additional error details provided.'}`,
+              'Category update failed',
+              dom
+            )
           }
         }
       )
@@ -300,7 +303,11 @@ export function renderIssue (issue, context) {
         alertDialog('Now fixed.', 'Assignment Fixed', dom)
       } else {
         debug.error(`Failed to fix multiple assignees:\n${body}`)
-        alertDialog('Failed to fix multiple assignees', 'Assignment Fix Failed', dom)
+        alertDialog(
+          `Failed to fix multiple assignees.\n\nDetails: ${body || 'No additional error details provided.'}`,
+          'Assignment fix failed',
+          dom
+        )
       }
     })
   }
@@ -355,7 +362,11 @@ export function renderIssue (issue, context) {
             if (ok) setModifiedDate(store, kb, store)
             else {
               debug.error('Failed to change assignee:\n' + body)
-              alertDialog('Failed to change assignee', 'Assignee Update Failed', dom)
+              alertDialog(
+                `Failed to change assignee.\n\nDetails: ${body || 'No additional error details provided.'}`,
+                'Assignee update failed',
+                dom
+              )
             }
           }
         )
@@ -486,7 +497,12 @@ export function renderIssue (issue, context) {
       await kb.updater.update(kb.connectedStatements(issue))
     } catch (err) {
       debug.error('Unable to delete issue: ' + err)
-      alertDialog('Unable to delete issue', 'Issue Deletion Failed', dom)
+      alertDialog(
+        `Unable to delete issue.\n\nDetails: ${err?.message || String(err)}`,
+        'Issue deletion failed',
+        dom
+      )
+      return
     }
     // @@ refreshTree
     alertDialog('Your issue has been deleted', 'Issue Deleted', dom)

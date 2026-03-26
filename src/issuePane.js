@@ -213,7 +213,8 @@ export default {
         const insertables = damage.filter(fix => fix.action === 'insert').map(fix => fix.st)
         const deletables = damage.filter(fix => fix.action === 'delete').map(fix => fix.st)
         debug.warn('Damage:', damage)
-        if (confirm(`Fix ${damage} inconsistent subclasses in tracker config?`)) {
+        const fixSummary = `${damage.length} total (${insertables.length} add, ${deletables.length} remove)`
+        if (confirm(`Apply subclass fixes in tracker config? ${fixSummary}.`)) {
           await kb.updater.update(deletables, insertables)
         }
       }

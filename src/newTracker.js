@@ -97,12 +97,20 @@ export function newTrackerButton (thisTracker, context) {
               debug.log(`Ok The tracker created OK at: ${newTracker.uri}\nMake a note of it, bookmark it.`)
             } else {
               debug.error(`Failed to set up new store at: ${newStore.uri} : ${message}`)
-              alertDialog(`Failed to set up new store at: ${newStore.uri}`)
+              alertDialog(
+                `Failed to set up new store at: ${newStore.uri}\n\nDetails: ${message || 'No additional error details provided.'}`,
+                'Create tracker failed',
+                context.dom
+              )
             }
           })
         } else {
           debug.error(`Failed to save new tracker at: ${there.uri} : ${message}`)
-          alertDialog(`Failed to save new tracker at: ${there.uri}`)
+          alertDialog(
+            `Failed to save new tracker at: ${there.uri}\n\nDetails: ${message || 'No additional error details provided.'}`,
+            'Save tracker failed',
+            context.dom
+          )
         }
       }
     )

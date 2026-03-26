@@ -101,25 +101,40 @@ export function csvText (store, tracker) {
 
 export function csvButton (dom, tracker) {
   const wrapper = dom.createElement('div')
+  let pendingCsvCopy = false
+
+  wrapper.addEventListener('copy', event => {
+    if (!pendingCsvCopy) return
+    pendingCsvCopy = false
+
+    let csv
+    try {
+      csv = csvText(store, tracker)
+    } catch (err) {
+      alertDialog(
+        `Could not generate CSV. Please check tracker data and try again.\n\nDetails: ${err?.message || String(err)}`,
+        'CSV export error',
+        dom
+      )
+      event.preventDefault()
+      return
+    }
+
+    event.preventDefault()
+    event.clipboardData.setData('text/plain', csv)
+    event.clipboardData.setData('text/csv', csv)
+    alertDialog('CSV data copied to clipboard.', 'CSV export', dom)
+  })
+
   // Add a button
   const button = widgets.button(dom, icons.iconBase + 'noun_Document_998605.svg',
     'Copy as CSV', async _event => {
-      const div = button.parentNode.parentNode
-      div.addEventListener('copy', event => {
-        // alert ('Copy caught');
-        let csv
-        try {
-          csv = csvText(store, tracker)
-        } catch (err) {
-          alertDialog('Could not generate CSV. Please check tracker data and try again.', 'CSV export error', dom)
-          event.preventDefault()
-          return
-        }
-        event.preventDefault()
-        event.clipboardData.setData('text/plain', csv)
-        event.clipboardData.setData('text/csv', csv)
-        alertDialog('CSV data copied to clipboard.', 'CSV export', dom)
-      })
+      pendingCsvCopy = true
+      const copied = dom.execCommand('copy')
+      if (!copied) {
+        pendingCsvCopy = false
+        alertDialog('Could not copy CSV to clipboard. Please try again.', 'CSV export error', dom)
+      }
     })
 
   wrapper.appendChild(button)

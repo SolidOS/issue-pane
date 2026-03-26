@@ -82,7 +82,11 @@ export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue, onCanc
         titlefield.classList.remove('pendingedit')
         titlefield.disabled = false
         titlefield.focus()
-        alertDialog('Could not save the new issue. Please try again.', 'Save issue failed', dom)
+        alertDialog(
+          `Could not save the new issue. Please try again.\n\nDetails: ${body || 'No additional error details provided.'}`,
+          'Save issue failed',
+          dom
+        )
       } else {
         form.parentNode.removeChild(form)
         showNewIssue(issue)

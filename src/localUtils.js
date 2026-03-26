@@ -9,7 +9,7 @@ function ensureModalOverlay (dom) {
   // if we previously created an overlay but it was removed from the document
   // (tests clear body), rebuild it.  Checking presence ensures our reference
   // doesn't point at a detached element.
-  if (modalOverlay && document.body.contains(modalOverlay)) return modalOverlay
+  if (modalOverlay && dom.body.contains(modalOverlay)) return modalOverlay
   // otherwise drop stale reference and create a new element
   modalOverlay = null
   // overlay container
@@ -26,7 +26,7 @@ function ensureModalOverlay (dom) {
     </div>
   `
 
-  document.body.appendChild(modalOverlay)
+  dom.body.appendChild(modalOverlay)
 
   // keyboard handling (esc/tab)
   modalOverlay.addEventListener('keydown', e => {
@@ -40,7 +40,7 @@ function ensureModalOverlay (dom) {
       // simple focus trap: cycle through focusable elements inside overlay
       const focusable = Array.from(modalOverlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.hasAttribute('disabled'))
       if (focusable.length === 0) return
-      const idx = focusable.indexOf(document.activeElement)
+      const idx = focusable.indexOf(dom.activeElement)
       if (e.shiftKey) {
         if (idx === 0) {
           focusable[focusable.length - 1].focus()
@@ -58,8 +58,8 @@ function ensureModalOverlay (dom) {
   return modalOverlay
 }
 
-function hideSiblings (hide) {
-  const siblings = Array.from(document.body.children).filter(c => c !== modalOverlay)
+function hideSiblings (hide, dom) {
+  const siblings = Array.from(dom.body.children).filter(c => c !== modalOverlay)
   siblings.forEach(el => {
     if (hide) el.setAttribute('aria-hidden', 'true')
     else el.removeAttribute('aria-hidden')
@@ -68,9 +68,9 @@ function hideSiblings (hide) {
 
 function openModal ({ title, message, buttons, dom }) {
   const overlay = ensureModalOverlay(dom)
-  const modalDom = dom || overlay.ownerDocument
-  previousFocus = document.activeElement
-  hideSiblings(true)
+
+  previousFocus = dom.activeElement
+  hideSiblings(true, dom)
   overlay.classList.remove('hidden')
 
   overlay.querySelector('#modal-title').textContent = title || ''
@@ -88,7 +88,7 @@ function openModal ({ title, message, buttons, dom }) {
 
   return new Promise(resolve => {
     buttons.forEach(btn => {
-      const b = modalDom.createElement('button')
+      const b = dom.createElement('button')
       b.setAttribute('type', 'button')
       b.textContent = btn.label
       if (btn.primary) b.classList.add('btn-primary')
@@ -107,13 +107,14 @@ function openModal ({ title, message, buttons, dom }) {
 
 function closeModal (result) {
   if (modalOverlay) {
+    const modalDom = modalOverlay.ownerDocument
     modalOverlay.classList.add('hidden')
-    hideSiblings(false)
+    hideSiblings(false, modalDom)
     if (previousFocus && previousFocus.focus) previousFocus.focus()
   }
 }
 
-export function alertDialog (message, title = 'Information', dom = null) {
+export function alertDialog (message, title = 'Information', dom) {
   return openModal({
     title,
     message,
