@@ -145,35 +145,24 @@ export default {
     detailsSectionContent.setAttribute('aria-live', 'polite')
     detailsSection.appendChild(detailsSectionContent)
 
+    function placeDetailsSection () {
+      const newTrackerControl = paneDiv.querySelector('.trackerNewTrackerButton')
+      if (newTrackerControl && newTrackerControl.parentNode === paneDiv) {
+        paneDiv.insertBefore(detailsSection, newTrackerControl)
+      } else {
+        paneDiv.appendChild(detailsSection)
+      }
+    }
+
     function showDetailsSection () {
       detailsSection.hidden = false
-      paneDiv.appendChild(detailsSection) // keep details at the bottom
+      placeDetailsSection()
     }
 
     function complainInDetails (message) {
       showDetailsSection()
       complain(detailsSectionContent, dom, message)
     }
-
-    function shouldInjectDetailsTestErrors () {
-      const view = dom.defaultView
-      if (!view || !view.location) return false
-      try {
-        const params = new view.URLSearchParams(view.location.search || '')
-        return params.get('testDetailsSectionErrors') === '1'
-      } catch (_e) {
-        return false
-      }
-    }
-
-    function injectDetailsTestErrorsIfEnabled () {
-      if (!shouldInjectDetailsTestErrors()) return
-      complainInDetails('Test error: unable to load optional tracker metadata.')
-      complainInDetails('Test warning: one issue is missing a category value.')
-      complainInDetails('Test info: this is a sample detailsSection message for visual QA.')
-    }
-
-    injectDetailsTestErrorsIfEnabled()
 
     function complainIfBad (ok, message) {
       if (!ok) {
