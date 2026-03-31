@@ -1,7 +1,7 @@
 import { widgets } from 'solid-ui'
 import './styles/localUtils.css'
 
-/* Copied from contacts-pane, made minor adjustments */
+/* Copied from issue-pane, made minor adjustments */
 let modalOverlay = null
 let previousFocus = null
 
@@ -14,7 +14,7 @@ function ensureModalOverlay (dom) {
   modalOverlay = null
   // overlay container
   modalOverlay = dom.createElement('div')
-  modalOverlay.id = 'contacts-modal'
+  modalOverlay.id = 'issue-modal'
   modalOverlay.className = 'focus-trap hidden'
   modalOverlay.setAttribute('role', 'presentation')
 
