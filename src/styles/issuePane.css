@@ -2,18 +2,6 @@
 using the GPT-5.3-Codex model in GitHub. The prompts used are below:  
 - can you style my table and make it look nice?
 - can you handle the visibility in exposeOverlay with css? */ 
-.trackerIssuePaneTable {
-  width: fit-content;
-  border-collapse: collapse;
-}
-.trackerIssuePaneTable td {
-  padding: 0.1em 0.7em 0.1em 0.1em;
-}
-.trackerIssuePaneTable img {
-  width: var(--icon-sm, 1.5em);
-  height: var(--icon-sm, 1.5em);
-  border-radius: 50%;
-}
 
 .trackerIssuePaneNewIssueButtonContainer {
   display: flex;
@@ -54,16 +42,6 @@ using the GPT-5.3-Codex model in GitHub. The prompts used are below:
   vertical-align: middle;
 }
 
-.trackerIssuePaneOverflow {
-  position: fixed;
-  z-index: 100;
-  top: 1.51em;
-  right: var(--spacing-xl, 2em);
-  left: var(--spacing-xl, 2em);
-  bottom: var(--spacing-lg, 1.5em);
-  border: 0.1em  solid grey;
-  overflow: scroll;
-}
 .trackerIssuePaneLoginButton {
   margin: var(--spacing-sm) var(--spacing-md);
 }
