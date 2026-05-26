@@ -23,7 +23,7 @@ const common = {
       path: require.resolve('path-browserify')
     },
   },
-  devtool: 'source-map',
+  devtool: false,
 }
 
 const normalConfig = {
