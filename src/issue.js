@@ -422,7 +422,6 @@ export function renderIssue (issue, context) {
   //   Comment/discussion area
 
   const spacer = issueDiv.appendChild(renderSpacer(dom, backgroundColor))
-  spacer.classList.add('trackerIssueSpacer')
   const template = kb.anyValue(tracker, ns.wf('issueURITemplate'))
   /*
   var chatDocURITemplate = kb.anyValue(tracker, ns.wf('chatDocURITemplate')) // relaive to issue
