@@ -1,29 +1,27 @@
 import path from 'path'
 import { moduleRules } from './webpack.module.rules.mjs'
-import { createRequire } from 'module'
 import TerserPlugin from 'terser-webpack-plugin'
 import CopyPlugin from 'copy-webpack-plugin'
 
-const require = createRequire(import.meta.url)
-
 const common = {
-  mode: 'production',
   entry: './src/issuePane.js',
+  resolve: {
+    extensions: ['.js', '.ts'],
+  },
   module: {
     rules: moduleRules,
   },
   externals: {
-    'solid-ui': 'UI',
+    fs: 'null',
+    'node-fetch': 'fetch',
+    'isomorphic-fetch': 'fetch',
+    'text-encoding': 'TextEncoder',
+    '@trust/webcrypto': 'crypto',
+    rdflib: 'rdflib',
     'solid-logic': 'SolidLogic',
-    rdflib: '$rdf',
+    'solid-ui': 'UI'
   },
-  resolve: {
-    extensions: ['.js', '.ts'],
-    fallback: {
-      path: require.resolve('path-browserify')
-    },
-  },
-  devtool: false,
+  devtool: 'source-map',
 }
 
 const normalConfig = {
