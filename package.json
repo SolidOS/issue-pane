@@ -10,7 +10,7 @@
   "files": [
     "lib/",
     "README.md",
-    "LICENSE"
+    "LICENSE.md"
   ],
   "scripts": {
     "clean": "rm -rf lib",
