@@ -20,7 +20,7 @@ import './styles/newTracker.css'
 import './styles/newIssue.css'
 import './styles/csvButton.css'
 import './styles/issuePane.css'
-import './styles/utilites.css'
+import './styles/utilities.css'
 
 const kb = store
 
