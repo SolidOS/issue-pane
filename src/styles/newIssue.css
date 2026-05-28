@@ -1,0 +1,13 @@
+.trackerNewIssueForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 0.75em);
+  padding: var(--spacing-md, 1em);
+}
+
+.trackerNewIssueTitleField {
+  margin: var(--spacing-sm, 0.75em);
+  font-size: 100%;
+  padding: var(--spacing-sm, 0.75em);
+  width: 100%;
+}
