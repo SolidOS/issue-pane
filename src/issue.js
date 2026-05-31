@@ -4,7 +4,7 @@ import { icons, messageArea, ns, utils, widgets } from 'solid-ui'
 import { authn, store } from 'solid-logic'
 import { newIssueForm } from './newIssue'
 import * as $rdf from 'rdflib'
-import * as debug from './debug'
+import { error, warn } from './debug'
 import { alertDialog, complain } from './localUtils'
 import './styles/issue.css'
 import './styles/utilities.css'
@@ -80,7 +80,7 @@ export function renderIssueCard (issue, context) {
       try {
         await kb.updater.update(kb.connectedStatements(issue))
       } catch (err) {
-        debug.error('Unable to delete issue: ' + err)
+        error('Unable to delete issue: ' + err)
         alertDialog(
           `Unable to delete issue.\n\nDetails: ${err?.message || String(err)}`,
           'Delete failed',
@@ -150,7 +150,7 @@ export function renderIssue (issue, context) {
 
   function complainIfBad (ok, body) {
     if (!ok) {
-      debug.error('Failed to save change:\n' + body)
+      error('Failed to save change:\n' + body)
       complainInIssue('Failed to save change')
     }
   }
@@ -188,7 +188,7 @@ export function renderIssue (issue, context) {
 
   const states = kb.any(tracker, ns.wf('issueClass'))
   if (!states) {
-    debug.error('Tracker ' + utils.label(tracker) + ' has no issueClass')
+    error('Tracker ' + utils.label(tracker) + ' has no issueClass')
     alertDialog('Tracker ' + utils.label(tracker) + ' has no issueClass. Please open Settings and make sure there is a state class with allowed values (for example Open, In Progress, Closed), then save and refresh.', 'Tracker configuration error', dom)
     const p = dom.createElement('p')
     p.textContent = 'Sorry, failed to save your change.'
@@ -207,7 +207,7 @@ export function renderIssue (issue, context) {
         setModifiedDate(store, kb, store)
         widgets.refreshTree(issueDiv)
       } else {
-        debug.warn('Failed to change state:\n' + body)
+        warn('Failed to change state:\n' + body)
         alertDialog(
           `Failed to change state.\n\nDetails: ${body || 'No additional error details provided.'}`,
           'State update failed',
@@ -232,7 +232,7 @@ export function renderIssue (issue, context) {
             setModifiedDate(store, kb, store)
             widgets.refreshTree(issueDiv)
           } else {
-            debug.warn('Failed to change category:\n' + body)
+            warn('Failed to change category:\n' + body)
             alertDialog(
               `Failed to change category.\n\nDetails: ${body || 'No additional error details provided.'}`,
               'Category update failed',
@@ -302,7 +302,7 @@ export function renderIssue (issue, context) {
       if (ok) {
         alertDialog('Now fixed.', 'Assignment Fixed', dom)
       } else {
-        debug.error(`Failed to fix multiple assignees:\n${body}`)
+        error(`Failed to fix multiple assignees:\n${body}`)
         alertDialog(
           `Failed to fix multiple assignees.\n\nDetails: ${body || 'No additional error details provided.'}`,
           'Assignment fix failed',
@@ -361,7 +361,7 @@ export function renderIssue (issue, context) {
           function (ok, body) {
             if (ok) setModifiedDate(store, kb, store)
             else {
-              debug.error('Failed to change assignee:\n' + body)
+              error('Failed to change assignee:\n' + body)
               alertDialog(
                 `Failed to change assignee.\n\nDetails: ${body || 'No additional error details provided.'}`,
                 'Assignee update failed',
@@ -496,7 +496,7 @@ export function renderIssue (issue, context) {
     try {
       await kb.updater.update(kb.connectedStatements(issue))
     } catch (err) {
-      debug.error('Unable to delete issue: ' + err)
+      error('Unable to delete issue: ' + err)
       alertDialog(
         `Unable to delete issue.\n\nDetails: ${err?.message || String(err)}`,
         'Issue deletion failed',

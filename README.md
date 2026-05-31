@@ -37,4 +37,3 @@ Example:
 * can you style my table and make it look nice.
 * can you handle the visibility in exposeOverlay with css?
 * move details section to be before the newTrackerButton
-* Configure debug so that it can be turned on and off

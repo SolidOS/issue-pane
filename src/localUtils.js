@@ -1,7 +1,7 @@
 import { widgets } from 'solid-ui'
 import './styles/localUtils.css'
 
-/* Copied from issue-pane, made minor adjustments */
+/* Copied from contacts-pane, made minor adjustments */
 let modalOverlay = null
 let previousFocus = null
 

@@ -7,7 +7,7 @@
 import { icons, ns, utils, widgets } from 'solid-ui'
 import { store } from 'solid-logic'
 import { alertDialog } from './localUtils'
-import * as debug from './debug'
+import { error } from './debug'
 
 export function quoteString (value) {
   // https://www.rfc-editor.org/rfc/rfc4180
@@ -18,7 +18,7 @@ export function quoteString (value) {
   const quoted = '"' + stripped.replaceAll('"', '""') + '"'
   const check = quoted.slice(1, -1).replaceAll('""', '')
   if (check.includes('"')) {
-    debug.error(`quoteString failed to quote properly, value: ${value}, quoted: ${quoted}, check: ${check}`)
+    error(`quoteString failed to quote properly, value: ${value}, quoted: ${quoted}, check: ${check}`)
     throw new Error('CSV inconsistency')
   }
   return quoted
@@ -40,7 +40,7 @@ export function csvText (store, tracker) {
       if (!thing) return '?' + utils.label(column.category) // Missing cat OK
       // if (!thing) throw new Error('wot no class of category ', column.category)
     } else {
-      debug.error('column has no predicate or category', column)
+      error('column has no predicate or category', column)
       throw new Error('Column has no predicate or category.')
     }
     return utils.label(thing)

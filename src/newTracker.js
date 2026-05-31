@@ -2,7 +2,7 @@ import * as UI from 'solid-ui'
 import { store } from 'solid-logic'
 import './styles/newTracker.css'
 import { alertDialog } from './localUtils'
-import * as debug from './debug'
+import { error, log } from './debug'
 
 const ns = UI.ns
 const updater = store.updater
@@ -41,7 +41,7 @@ export function newTrackerButton (thisTracker, context) {
     if (!base) {
       base = kb.any(ws, sp('uriPrefix')).value
       if (base.slice(-1) !== '/') {
-        debug.error(`${appPathSegment}: No / at end of uriPrefix ${base}`)
+        error(`${appPathSegment}: No / at end of uriPrefix ${base}`)
         base = base + '/'
       }
       base += appPathSegment + '/' + timestring() + '/' // unique id
@@ -94,9 +94,9 @@ export function newTrackerButton (thisTracker, context) {
             message
           ) {
             if (ok) {
-              debug.log(`Ok The tracker created OK at: ${newTracker.uri}\nMake a note of it, bookmark it.`)
+              log(`Ok The tracker created OK at: ${newTracker.uri}\nMake a note of it, bookmark it.`)
             } else {
-              debug.error(`Failed to set up new store at: ${newStore.uri} : ${message}`)
+              error(`Failed to set up new store at: ${newStore.uri} : ${message}`)
               alertDialog(
                 `Failed to set up new store at: ${newStore.uri}\n\nDetails: ${message || 'No additional error details provided.'}`,
                 'Create tracker failed',
@@ -105,7 +105,7 @@ export function newTrackerButton (thisTracker, context) {
             }
           })
         } else {
-          debug.error(`Failed to save new tracker at: ${there.uri} : ${message}`)
+          error(`Failed to save new tracker at: ${there.uri} : ${message}`)
           alertDialog(
             `Failed to save new tracker at: ${there.uri}\n\nDetails: ${message || 'No additional error details provided.'}`,
             'Save tracker failed',
