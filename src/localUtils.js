@@ -34,7 +34,7 @@ function ensureModalOverlay (dom) {
       // simulate cancel if available
       const cancelBtn = modalOverlay.querySelector('button[data-cancel]')
       if (cancelBtn) cancelBtn.click()
-      else closeModal(false)
+      else closeModal()
     } else if (e.key === 'Tab') {
       // simple focus trap: cycle through focusable elements inside overlay
       const focusable = Array.from(modalOverlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.hasAttribute('disabled'))
@@ -93,7 +93,7 @@ function openModal ({ title, message, buttons, dom }) {
       if (btn.primary) b.classList.add('btn-primary')
       if (btn.cancel) b.setAttribute('data-cancel', 'true')
       b.addEventListener('click', () => {
-        closeModal(btn.value)
+        closeModal()
         resolve(btn.value)
       })
       btnContainer.appendChild(b)
@@ -104,7 +104,7 @@ function openModal ({ title, message, buttons, dom }) {
   })
 }
 
-function closeModal (result) {
+function closeModal () {
   if (modalOverlay) {
     const modalDom = modalOverlay.ownerDocument
     modalOverlay.classList.add('hidden')
