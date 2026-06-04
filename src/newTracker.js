@@ -1,6 +1,6 @@
 import * as UI from 'solid-ui'
 import { store } from 'solid-logic'
-import './styles/newTracker.css'
+import './newTracker.css'
 import { alertDialog } from './localUtils'
 import { error, log } from './debug'
 

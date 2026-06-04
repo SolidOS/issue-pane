@@ -13,7 +13,7 @@
 import { ns, utils, widgets } from 'solid-ui'
 import { store } from 'solid-logic'
 import * as $rdf from 'rdflib'
-import './styles/board.css'
+import './board.css'
 
 export function board (dom, columnValues, renderItem, options) {
   const board = dom.createElement('div')

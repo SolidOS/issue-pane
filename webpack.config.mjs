@@ -43,8 +43,8 @@ const normalConfig = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve('src/styles'),
-          to: path.resolve('lib/styles'),
+          from: 'src/*.css',
+          to: path.resolve('lib'),
         },
       ],
     }),
@@ -73,8 +73,8 @@ const minConfig = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve('src/styles'),
-          to: path.resolve('lib/styles'),
+          from: 'src/*.css',
+          to: path.resolve('lib'),
         },
       ],
     }),

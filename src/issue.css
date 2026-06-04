@@ -85,6 +85,7 @@ issue not popping up */
   border: 0.05em solid grey;
   border-radius: var(--border-radius-base, 0.5em);
 }
+
 .trackerIssueSubIssuePanel {
   margin: var(--spacing-md, 1em);
   padding: var(--spacing-md, 1em);

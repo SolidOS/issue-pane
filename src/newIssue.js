@@ -3,7 +3,7 @@
 import { ns, utils } from 'solid-ui'
 import * as $rdf from 'rdflib'
 import { alertDialog } from './localUtils'
-import './styles/newIssue.css'
+import './newIssue.css'
 
 export function newIssueForm (dom, kb, tracker, superIssue, showNewIssue, onCancel) {
   const form = dom.createElement('div') // form is broken as HTML behaviour can resurface on js error

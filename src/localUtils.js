@@ -1,5 +1,5 @@
 import { widgets } from 'solid-ui'
-import './styles/localUtils.css'
+import './localUtils.css'
 
 /* Copied from contacts-pane, made minor adjustments */
 let modalOverlay = null
@@ -121,8 +121,4 @@ export function alertDialog (message, title = 'Information', dom) {
     buttons: [{ label: 'OK', value: true, primary: true }],
     dom
   })
-}
-
-export function complain (div, d, message) {
-  div.appendChild(widgets.errorMessageBlock(d, message, 'pink'))
 }
