@@ -27,6 +27,11 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
+/* Preserve newlines in string messages (many call sites use "\n\n") */
+#issue-modal #modal-desc {
+  white-space: pre-wrap;
+}
+
 /* button container: center buttons horizontally (uses id in markup) */
 #issue-modal #modal-buttons {
   margin-top: var(--spacing-md);
