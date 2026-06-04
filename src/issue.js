@@ -184,7 +184,7 @@ export function renderIssue (issue, context) {
 
   const issueDiv = dom.createElement('div')
   issueDiv.classList.add('trackerIssue')
-  const messageSection = issueDiv.appendChild(dom.createElement('div'))
+  const messageSection = dom.createElement('div')
   messageSection.classList.add('trackerIssueMessageSection')
   const { showError, clearErrors } = renderErrorSection(dom, messageSection)
   const me = authn.currentUser()
@@ -202,6 +202,7 @@ export function renderIssue (issue, context) {
   if (!states) {
     error('Tracker ' + utils.label(tracker) + ' has no issueClass')
     showError('Tracker ' + utils.label(tracker) + ' has no issueClass. Please open Settings and make sure there is a state class with allowed values (for example Open, In Progress, Closed), then save and refresh.')
+    issueDiv.appendChild(messageSection)
     return issueDiv
   }
 
