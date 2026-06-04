@@ -1,4 +1,3 @@
-import { widgets } from 'solid-ui'
 import './localUtils.css'
 
 /* Copied from contacts-pane, made minor adjustments */
