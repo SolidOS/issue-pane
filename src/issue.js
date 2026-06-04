@@ -116,7 +116,7 @@ export function exposeOverlay (subject, context) {
       widgets.button(context.dom, icons.iconBase + 'noun_1180156.svg', 'close', hideOverlay))
     button.classList.add('trackerOverlayCloseButton')
     delete button.style.backgroundColor // do not want white
-  overlay.classList.add('trackerOverlayVisible')
+    overlay.classList.add('trackerOverlayVisible')
   } catch (err) {
     error('Failed to render issue: ' + err)
     alertDialog(
