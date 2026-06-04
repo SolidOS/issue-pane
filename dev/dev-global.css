@@ -53,7 +53,17 @@
   --focus-indicator-width: 3px;
   --animation-duration-slow: 0.3s;
   --high-contrast-ratio: 7:1; /* WCAG AAA standard */
+
+    /* icons */
+  --icon-xxxs: 0.75rem; /* 12px new design uses this */
+  --icon-xxs: 1rem; /* 16px new design uses this */
+  --icon-xs: 1.5rem; /* 24px new design uses this */
+  --icon-sm: 1.8rem; /* 28px new design uses this */
+  --icon-base: 2rem; /* 32px new design uses this */
+  --icon-md: 2.5rem; /* 40px new design uses this */
+  --icon-xl: 3.1rem; /* 50px new design uses this */
 }
+
 
 
 /* Improve text rendering */
