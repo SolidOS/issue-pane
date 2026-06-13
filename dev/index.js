@@ -8,32 +8,16 @@ import * as UI from 'solid-ui'
 const loginBanner = document.getElementById('loginBanner')
 const webId = document.getElementById('webId')
 
-if (loginBanner) {
-  loginBanner.appendChild(UI.login.loginStatusBox(document, null, {}))
-}
+loginBanner.appendChild(UI.login.loginStatusBox(document, null, {}))
 
 async function finishLogin () {
-  const me = await authn.checkUser()
+  await authSession.handleIncomingRedirect()
   const session = authSession
-  const sessionWebId = session?.webId ?? session?.info?.webId ?? null
-  const meWebId = me?.uri ?? me?.value ?? null
-  const webIdUri = meWebId ?? sessionWebId
-  const isLoggedIn = Boolean(
-    me ||
-    session?.isActive ||
-    session?.info?.isLoggedIn ||
-    sessionWebId
-  )
-
-  if (isLoggedIn && webIdUri) {
+  if (session.info.isLoggedIn) {
     // Update the page with the status.
-    if (webId) {
-      webId.innerHTML = 'Logged in as: ' + webIdUri
-    }
+    webId.innerHTML = 'Logged in as: ' + authn.currentUser().uri
   } else {
-    if (webId) {
-      webId.innerHTML = ''
-    }
+    webId.innerHTML = ''
   }
 }
 
