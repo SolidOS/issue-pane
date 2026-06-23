@@ -1,6 +1,8 @@
 import * as UI from 'solid-ui'
-import * as $rdf from 'rdflib'
 import { store } from 'solid-logic'
+import './newTracker.css'
+import { alertDialog } from './localUtils'
+import { error, log } from './debug'
 
 const ns = UI.ns
 const updater = store.updater
@@ -33,16 +35,13 @@ export function newTrackerButton (thisTracker, context) {
     }
 
     const appPathSegment = 'issuetracker.w3.org' // how to allocate this string and connect to
-    // console.log("Ready to make new instance at "+ws)
     const sp = UI.ns.space
     const kb = context.session.store
 
     if (!base) {
       base = kb.any(ws, sp('uriPrefix')).value
       if (base.slice(-1) !== '/') {
-        $rdf.log.error(
-          appPathSegment + ': No / at end of uriPrefix ' + base
-        )
+        error(`${appPathSegment}: No / at end of uriPrefix ${base}`)
         base = base + '/'
       }
       base += appPathSegment + '/' + timestring() + '/' // unique id
@@ -83,8 +82,6 @@ export function newTrackerButton (thisTracker, context) {
 
     kb.add(newTracker, UI.ns.space('inspiration'), thisTracker, there)
 
-    // $rdf.log.debug("\n Ready to put " + kb.statementsMatching(undefined, undefined, undefined, there)); //@@
-
     updater.put(
       there,
       kb.statementsMatching(undefined, undefined, undefined, there),
@@ -97,23 +94,22 @@ export function newTrackerButton (thisTracker, context) {
             message
           ) {
             if (ok) {
-              console.info(
-                'Ok The tracker created OK at: ' +
-                      newTracker.uri +
-                      '\nMake a note of it, bookmark it. '
-              )
+              log(`Ok The tracker created OK at: ${newTracker.uri}\nMake a note of it, bookmark it.`)
             } else {
-              console.log(
-                'FAILED to set up new store at: ' +
-                      newStore.uri +
-                      ' : ' +
-                      message
+              error(`Failed to set up new store at: ${newStore.uri} : ${message}`)
+              alertDialog(
+                `Failed to set up new store at: ${newStore.uri}\n\nDetails: ${message || 'No additional error details provided.'}`,
+                'Create tracker failed',
+                context.dom
               )
             }
           })
         } else {
-          console.log(
-            'FAILED to save new tracker at: ' + there.uri + ' : ' + message
+          error(`Failed to save new tracker at: ${there.uri} : ${message}`)
+          alertDialog(
+            `Failed to save new tracker at: ${there.uri}\n\nDetails: ${message || 'No additional error details provided.'}`,
+            'Save tracker failed',
+            context.dom
           )
         }
       }
@@ -125,7 +121,6 @@ export function newTrackerButton (thisTracker, context) {
     // @@ Optionally link new instance to list of instances -- both ways? and to child/parent?
     // @@ Set up access control for new config and store.
   }) // callback to newAppInstance
-
-  button.setAttribute('style', 'margin: 0.5em 1em;')
+  button.classList.add('trackerNewTrackerButton')
   return button
 } // newTrackerButton
