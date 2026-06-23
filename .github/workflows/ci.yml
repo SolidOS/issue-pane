@@ -13,8 +13,7 @@ on:
 jobs:
   update-deps:
     uses: SolidOS/solidos/.github/workflows/update-solidos-deps.yml@main
-    secrets:
-      GIT_PUSH_TOKEN: ${{ secrets.GIT_PUSH_TOKEN }}
+    secrets: inherit
 
   build:
     needs: update-deps
