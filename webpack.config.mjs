@@ -1,56 +1,97 @@
-import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import path from 'path'
+import { moduleRules } from './webpack.module.rules.mjs'
+import TerserPlugin from 'terser-webpack-plugin'
+import CopyPlugin from 'copy-webpack-plugin'
 
-export default [
-  {
-    mode: 'production',
-    entry: {
-      board: './src/board.js',
-      csvButton: './src/csvButton.js',
-      issue: './src/issue.js',
-      issuePane: './src/issuePane.js',
-      newIssue: './src/newIssue.js',
-      newTracker: './src/newTracker.js',
+const common = {
+  entry: './src/issuePane.js',
+  resolve: {
+    extensions: ['.js', '.ts'],
+  },
+  module: {
+    rules: moduleRules,
+  },
+  externals: {
+    fs: 'null',
+    'node-fetch': 'fetch',
+    'isomorphic-fetch': 'fetch',
+    'text-encoding': 'TextEncoder',
+    '@trust/webcrypto': 'crypto',
+    rdflib: 'rdflib',
+    'solid-logic': 'SolidLogic',
+    'solid-ui': 'UI'
+  },
+  devtool: 'source-map',
+}
+
+const normalConfig = {
+  ...common,
+  mode: 'production',
+  output: {
+    path: path.resolve(process.cwd(), 'lib'),
+    filename: 'issue-pane.js',
+    library: {
+      type: 'umd',
+      name: 'IssuePane',
+      export: 'default',
     },
-    output: {
-      path: path.resolve(process.cwd(), 'dist'),
-      filename: '[name].js',
-      library: {
-        name: '[name]',
-        type: 'umd'
-      },
-      globalObject: 'this',
-      clean: false
+    globalObject: 'this',
+    clean: true,
+  },
+  plugins: [
+    ...(common.plugins || []),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'src/*.css',
+          to: path.resolve('lib'),
+        },
+      ],
+    }),
+  ],
+  optimization: {
+    minimize: false,
+  }
+}
+
+const minConfig = {
+  ...common,
+  mode: 'production',
+  output: {
+    path: path.resolve(process.cwd(), 'lib'),
+    filename: 'issue-pane.min.js',
+    library: {
+      type: 'umd',
+      name: 'IssuePane',
+      export: 'default',
     },
-    plugins: [
-      new NodePolyfillPlugin({
-        excludeAliases: ['console', 'process']
+    globalObject: 'this',
+    clean: false,
+  },
+  plugins: [
+    ...(common.plugins || []),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'src/*.css',
+          to: path.resolve('lib'),
+        },
+      ],
+    }),
+  ],
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
       })
     ],
-    module: {
-      rules: [
-        {
-          test: /\.(js|ts)$/,
-          exclude: /node_modules/,
-          use: ['babel-loader'],
-        },
+  }
+}
 
-        {
-          test: /\.ttl$/, // Target text  files
-          type: 'asset/source', // Load the file's content as a string
-        },
-
-      ],
-    },
-    externals: {
-      'solid-ui': 'UI',
-      'solid-logic': 'SolidLogic',
-      rdflib: '$rdf',
-    },
-    resolve: {
-      extensions: ['.js', '.ts']
-    },
-
-    devtool: false,
-  },
-]
+export default [normalConfig, minConfig]

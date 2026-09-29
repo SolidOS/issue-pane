@@ -1,5 +1,6 @@
 import { sym } from 'rdflib'
 import pane from '../src/issuePane'
+import './dev-global.css' // Import after src to override component styles
 import { context, fetcher } from './context'
 import { authn, authSession } from 'solid-logic'
 import * as UI from 'solid-ui'
@@ -7,16 +8,32 @@ import * as UI from 'solid-ui'
 const loginBanner = document.getElementById('loginBanner')
 const webId = document.getElementById('webId')
 
-loginBanner.appendChild(UI.login.loginStatusBox(document, null, {}))
+if (loginBanner) {
+  loginBanner.appendChild(UI.login.loginStatusBox(document, null, {}))
+}
 
 async function finishLogin () {
-  await authSession.handleIncomingRedirect()
+  const me = await authn.checkUser()
   const session = authSession
-  if (session.info.isLoggedIn) {
+  const sessionWebId = session?.webId ?? session?.info?.webId ?? null
+  const meWebId = me?.uri ?? me?.value ?? null
+  const webIdUri = meWebId ?? sessionWebId
+  const isLoggedIn = Boolean(
+    me ||
+    session?.isActive ||
+    session?.info?.isLoggedIn ||
+    sessionWebId
+  )
+
+  if (isLoggedIn && webIdUri) {
     // Update the page with the status.
-    webId.innerHTML = 'Logged in as: ' + authn.currentUser().uri
+    if (webId) {
+      webId.innerHTML = 'Logged in as: ' + webIdUri
+    }
   } else {
-    webId.innerHTML = ''
+    if (webId) {
+      webId.innerHTML = ''
+    }
   }
 }
 
@@ -32,7 +49,7 @@ finishLogin()
 // const targetURIToShow = "https://solidproject.solidcommunity.net/Roadmap/index.ttl#this";
 
 // const targetURIToShow = "https://timbl.com/timbl/Automation/mother/tracker.n3#mother"
-
+// const targetURIToShow = 'https://sstratsianis.solidcommunity.net/TestingTracker/index.ttl#this'
 const targetURIToShow = new URL('./big-tracker.ttl#this', window.location.href).href
 
 fetcher.load(targetURIToShow).then(() => {

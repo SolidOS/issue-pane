@@ -1,0 +1,5 @@
+/* section in mashlib css is display: block
+so i have to override it here */
+section.errorSection[hidden] {
+  display: none;
+}

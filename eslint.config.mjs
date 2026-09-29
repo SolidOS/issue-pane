@@ -10,6 +10,7 @@ export default [
       '**/*.json',
       'node_modules/**',
       'dist/**',
+      'lib/**',
       'docs/**',
     ],
   },
