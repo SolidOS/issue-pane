@@ -49,10 +49,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
-    "patch-package": "^8.0.1",
-    "rdflib": "2.4.0",
-    "solid-logic": "6.0.0-0",
-    "solid-ui": "5.0.0-0"
+    "patch-package": "^8.0.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.6",
@@ -67,9 +64,9 @@
     "html-webpack-plugin": "^5.6.6",
     "neostandard": "^0.13.0",
     "node-polyfill-webpack-plugin": "^4.1.0",
-    "rdflib": "^2.4.0",
-    "solid-logic": "^6.0.0-0",
-    "solid-ui": "^5.0.0-0",
+    "rdflib": "^2.4.1",
+    "solid-logic": "^6.0.0",
+    "solid-ui": "^5.0.1",
     "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.6.1",
     "webpack-cli": "^7.0.0",
