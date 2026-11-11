@@ -3,6 +3,11 @@ using the GPT-5.3-Codex model in GitHub. The prompts used are below:
 - can you style my table and make it look nice?
 - can you handle the visibility in exposeOverlay with css? */ 
 
+.issuePane,
+.issuePane.paneDiv {
+  overflow-x: auto;
+}
+
 .trackerIssuePaneNewIssueButtonContainer {
   display: flex;
   flex-direction: row;
